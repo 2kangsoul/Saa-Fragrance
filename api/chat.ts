@@ -17,45 +17,51 @@ export default async function handler(req: Request) {
     const body = await req.json();
     const { message, history } = body;
 
-    // 1. MENGAMBIL DATA DARI BACKENDLESS
+    // 1. AMBIL DATA DARI BACKENDLESS
     const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
     const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
     
-    // UBAH "NamaTabelAnda" DI BAWAH INI DENGAN NAMA TABEL PRODUK ANDA!
-    const dbResponse = await fetch(`https://api.backendless.com/${appId}/${apiKey}/data/NamaTabelAnda?pageSize=50`);
+    // UBAH BARIS INI DENGAN NAMA TABEL ANDA (Sangat sensitif terhadap huruf besar/kecil)
+    // Contoh: "Product", "Products", atau "Perfumes"
+    const tableName = "NAMA_TABEL_ANDA_DISINI"; 
+    
+    const dbResponse = await fetch(`https://api.backendless.com/${appId}/${apiKey}/data/${tableName}?pageSize=50`);
     const dbData = await dbResponse.json();
 
-    // 2. MERANGKUM DATABASE JADI TEKS UNTUK DIBACA AI
-    let productList = "Data produk sedang kosong.";
+    // 2. OLAH DATA (Ubah tipe String stock menjadi Angka)
+    let productList = "KOSONG";
     if (Array.isArray(dbData) && dbData.length > 0) {
-      productList = dbData
-        .filter((item: any) => item.stock > 0) // AI hanya akan membaca produk yang stoknya lebih dari 0
-        .map((item: any) => `- Brand: ${item.brand}, Aroma/Notes: ${item.notes}, Sisa Stok: ${item.stock}`)
+      const availableProducts = dbData
+        .filter((item: any) => parseInt(item.stock) > 0) // Parse string to Integer
+        .map((item: any) => `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`)
         .join("\n");
+        
+      if (availableProducts.length > 0) {
+        productList = availableProducts;
+      }
     }
 
-    // 3. INISIALISASI AI & MENYUAPI DATA
+    // 3. INSTRUKSI KE AI
     const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       systemInstruction: `Kamu adalah asisten ahli parfum bernama Fragrance AI.
       Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), 
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
-      Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan 
-      dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.
-      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). 
+      Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan.
+      PENTING: Jawablah menggunakan teks biasa tanpa format markdown (seperti tanda bintang atau list strip).
 
-      DAFTAR PRODUK TOKO KAMI SAAT INI (Berdasarkan Database Asli):
+      DAFTAR PRODUK TOKO KAMI YANG READY STOK:
       ${productList}
 
-      ATURAN KHUSUS REKOMENDASI: Jika user meminta rekomendasi parfum, kamu WAJIB mencari yang paling cocok dari "DAFTAR PRODUK TOKO KAMI SAAT INI" terlebih dahulu.
-      Kamu WAJIB mengawalinya dengan kalimat: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
-      Lalu berikan baris baru (ENTER) dan tuliskan rekomendasinya MAKSIMAL 3 POIN dengan format persis seperti ini:
-      1. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)
+      ATURAN MUTLAK REKOMENDASI: 
+      1. Jika "DAFTAR PRODUK TOKO KAMI" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN PERNAH merekomendasikan parfum apapun.
+      2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand seperti Dior, Chanel, dsb jika tidak ada di daftar.
+      3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
+      4. Lalu berikan baris baru (ENTER) dan tulis MAKSIMAL 3 POIN dengan format:
+      1. [Nama Brand dari tabel] - [Penjelasan notes] (Tersisa [jumlah stok] botol)
       Lalu berikan baris baru (ENTER)
-      2. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)
-      Lalu berikan baris baru (ENTER)
-      3. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)`,
+      2. [Nama Brand dari tabel] - [Penjelasan notes] (Tersisa [jumlah stok] botol)`,
     });
 
     const chat = model.startChat({
