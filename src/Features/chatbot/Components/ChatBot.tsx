@@ -1,4 +1,3 @@
-// File: src/Features/product/components/ChatBot.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 
@@ -8,7 +7,6 @@ const ChatBot: React.FC = () => {
   const [input, setInput] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll ke pesan terbaru
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -16,6 +14,7 @@ const ChatBot: React.FC = () => {
   }, [messages, isOpen]);
 
   const handleSend = () => {
+    if (!input.trim()) return;
     sendMessage(input);
     setInput("");
   };
@@ -24,12 +23,26 @@ const ChatBot: React.FC = () => {
     if (e.key === "Enter") handleSend();
   };
 
+  // FUNGSI SAKTI: Menyulap tanda ** menjadi teks tebal (BOLD)
+  const formatText = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={index} className="font-bold text-gray-900">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[9999]">
-      {/* Jendela Chat */}
       {isOpen && (
         <div className="w-80 h-96 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col mb-4 overflow-hidden transform transition-all">
-          {/* Header Chat */}
           <div className="bg-gray-900 text-white p-3 flex justify-between items-center">
             <span className="font-semibold text-sm">Fragrance AI</span>
             <button
@@ -40,7 +53,6 @@ const ChatBot: React.FC = () => {
             </button>
           </div>
 
-          {/* Area Pesan */}
           <div className="flex-1 p-4 overflow-y-auto bg-[#f8f7f4] flex flex-col gap-3">
             {messages.map((m, i) => {
               if (m.role === "system") return null;
@@ -50,11 +62,11 @@ const ChatBot: React.FC = () => {
                   key={i}
                   className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  {/* KUNCI PERBAIKAN: Menambahkan 'whitespace-pre-wrap' di class bawah ini */}
                   <div
                     className={`p-2.5 max-w-[80%] rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}
                   >
-                    {m.content}
+                    {/* Di sini fungsi formatText dipanggil */}
+                    {formatText(m.content)}
                   </div>
                 </div>
               );
@@ -69,7 +81,6 @@ const ChatBot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Area Input */}
           <div className="p-3 bg-white border-t border-gray-100 flex gap-2">
             <input
               type="text"
@@ -91,7 +102,6 @@ const ChatBot: React.FC = () => {
         </div>
       )}
 
-      {/* Tombol Bubble */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`btn btn-circle w-14 h-14 bg-gray-900 text-white border-none shadow-2xl hover:bg-black transition-transform ${isOpen ? "scale-0" : "scale-100"} absolute bottom-0 right-0`}
