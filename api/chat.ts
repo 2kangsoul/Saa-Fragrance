@@ -17,22 +17,30 @@ export default async function handler(req: Request) {
     const body = await req.json();
     const { message, history } = body;
 
-    // 1. AMBIL DATA DARI BACKENDLESS
+    // 1. AMBIL DATA DARI BACKENDLESS SECARA DINAMIS
+    // Menggunakan API_URL bawaan Anda agar tidak nyasar ke server yang salah
+    const baseUrl = process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
     const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
     const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
     
-    // UBAH BARIS INI DENGAN NAMA TABEL ANDA (Sangat sensitif terhadap huruf besar/kecil)
-    // Contoh: "Product", "Products", atau "Perfumes"
-    const tableName = "NAMA_TABEL_ANDA_DISINI"; 
+    // ⚠️ PERHATIAN: Pastikan ini SAMA PERSIS dengan nama tabel di Backendless Anda!
+    // Jika di database namanya huruf kecil semua ("products"), ubah menjadi "products".
+    const tableName = "Products"; 
     
-    const dbResponse = await fetch(`https://api.backendless.com/${appId}/${apiKey}/data/${tableName}?pageSize=50`);
+    const fetchUrl = `${baseUrl}/${appId}/${apiKey}/data/${tableName}?pageSize=50`;
+    const dbResponse = await fetch(fetchUrl);
     const dbData = await dbResponse.json();
 
-    // 2. OLAH DATA (Ubah tipe String stock menjadi Angka)
+    // Log untuk mendeteksi error jika Backendless menolak akses
+    if (!dbResponse.ok) {
+      console.error("Gagal Mengambil Database:", dbData);
+    }
+
+    // 2. OLAH DATA (Menyaring stok > 0)
     let productList = "KOSONG";
     if (Array.isArray(dbData) && dbData.length > 0) {
       const availableProducts = dbData
-        .filter((item: any) => parseInt(item.stock) > 0) // Parse string to Integer
+        .filter((item: any) => parseInt(item.stock) > 0)
         .map((item: any) => `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`)
         .join("\n");
         
@@ -56,7 +64,7 @@ export default async function handler(req: Request) {
 
       ATURAN MUTLAK REKOMENDASI: 
       1. Jika "DAFTAR PRODUK TOKO KAMI" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN PERNAH merekomendasikan parfum apapun.
-      2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand seperti Dior, Chanel, dsb jika tidak ada di daftar.
+      2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand jika tidak ada di daftar.
       3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
       4. Lalu berikan baris baru (ENTER) dan tulis MAKSIMAL 3 POIN dengan format:
       1. [Nama Brand dari tabel] - [Penjelasan notes] (Tersisa [jumlah stok] botol)
