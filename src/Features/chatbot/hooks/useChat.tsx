@@ -24,6 +24,10 @@ export const useChat = () => {
     setIsLoading(true);
 
     try {
+      // PERBAIKAN UTAMA: Kita potong (slice) pesan pertama agar Gemini tidak error
+      // Gemini mewajibkan history obrolan selalu dimulai oleh 'User'
+      const apiHistory = messages.slice(1).filter(m => m.role !== "system");
+
       // 2. Kirim pesan ke Backend Vercel kita
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -32,12 +36,15 @@ export const useChat = () => {
         },
         body: JSON.stringify({
           message: text,
-          // Kirim riwayat agar AI nyambung saat ngobrol panjang
-          history: messages.filter(m => m.role !== "system") 
+          history: apiHistory 
         }),
       });
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend Error:", errorData);
+        throw new Error("Terjadi kesalahan pada server AI");
+      }
 
       const data = await response.json();
       
