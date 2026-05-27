@@ -1,7 +1,6 @@
 // File: src/Features/product/components/ChatBot.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
-import ReactMarkdown from "react-markdown";
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -41,17 +40,13 @@ const ChatBot: React.FC = () => {
           {/* Area Pesan */}
           <div className="flex-1 p-4 overflow-y-auto bg-[#f8f7f4] flex flex-col gap-3">
             {messages.map((m, i) => {
-              if (m.role === "system") return null; // Jangan tampilkan system prompt di UI
+              if (m.role === "system") return null;
               
               return (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`p-2.5 max-w-[80%] rounded-xl text-sm ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}>
-                    
-                    {/* INI BAGIAN YANG DIUBAH: Membungkus konten pesan dengan ReactMarkdown */}
-                    <ReactMarkdown>
-                      {m.content}
-                    </ReactMarkdown>
-                    
+                  {/* KUNCI PERBAIKAN: Menambahkan 'whitespace-pre-wrap' di class bawah ini */}
+                  <div className={`p-2.5 max-w-[80%] rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}>
+                    {m.content}
                   </div>
                 </div>
               );
