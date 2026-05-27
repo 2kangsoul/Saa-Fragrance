@@ -30,7 +30,9 @@ export default async function handler(req: Request) {
       ATURAN KHUSUS REKOMENDASI: Jika user meminta rekomendasi parfum, kamu WAJIB mengawalinya dengan kalimat: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
       Lalu berikan baris baru (ENTER) dan tuliskan rekomendasinya MAKSIMAL 3 POIN dengan format persis seperti ini:
       1. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]
+      Lalu berikan baris baru (ENTER)
       2. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]
+      Lalu berikan baris baru (ENTER)
       3. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]`,
     });
 
