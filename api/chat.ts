@@ -66,11 +66,11 @@ export default async function handler(req: Request) {
       2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand jika tidak ada di daftar.
       3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
       4. Lalu berikan baris baru (ENTER) dan tulis MAKSIMAL 3 POIN dengan format:
-      1. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa [jumlah stok] botol)
+      1. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
       Lalu berikan baris baru (ENTER)
-      2. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa [jumlah stok] botol)
+      2. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
       Lalu berikan baris baru (ENTER)
-      3. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa [jumlah stok] botol)`,
+      3. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)`,
     });
 
     const chat = model.startChat({
