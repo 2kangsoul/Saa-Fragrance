@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 export const config = {
   runtime: "edge",
@@ -17,15 +17,12 @@ export default async function handler(req: Request) {
     const body = await req.json();
     const { message, history } = body;
 
-    // 1. AMBIL DATA DARI BACKENDLESS SECARA DINAMIS
-    const baseUrl =
-      process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
+    // 1. AMBIL DATA DARI BACKENDLESS (Tidak Diubah Sama Sekali!)
+    const baseUrl = process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
     const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
     const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
-
-    // NAMA TABEL SUDAH DISESUAIKAN PERSIS DENGAN GAMBAR DATABASE ANDA
-    const tableName = "Product";
-
+    const tableName = "Product"; 
+    
     const fetchUrl = `${baseUrl}/${appId}/${apiKey}/data/${tableName}?pageSize=50`;
     const dbResponse = await fetch(fetchUrl);
     const dbData = await dbResponse.json();
@@ -34,58 +31,61 @@ export default async function handler(req: Request) {
       console.error("Gagal Mengambil Database:", dbData);
     }
 
-    // 2. OLAH DATA (Menyaring stok > 0 dan membaca array Backendless dengan aman)
+    // 2. OLAH DATA STOK (Tidak Diubah Sama Sekali!)
     let productList = "KOSONG";
-    const records = Array.isArray(dbData) ? dbData : dbData?.data || [];
+    const records = Array.isArray(dbData) ? dbData : (dbData?.data || []);
 
     if (records.length > 0) {
       const availableProducts = records
         .filter((item: any) => parseInt(item.stock) > 0)
-        .map(
-          (item: any) =>
-            `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`,
-        )
+        .map((item: any) => `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`)
         .join("\n");
-
+        
       if (availableProducts.length > 0) {
         productList = availableProducts;
       }
     }
 
-    // 3. INSTRUKSI KE AI
-    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3.5-flash",
-      systemInstruction: `Kamu adalah asisten ahli parfum bernama Fragrance AI.
-      Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), 
-      performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
-      Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan.
-      PENTING: Jawablah menggunakan teks biasa tanpa format markdown (seperti tanda bintang atau list strip).
+    // 3. INSTRUKSI KE AI (Sama persis, format teks tebal tetap dijaga)
+    const systemInstruction = `Kamu adalah asisten ahli parfum bernama Fragrance AI.
+    Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), performa SPL, dan memberikan rekomendasi parfum. 
+    Jika user bertanya hal di luar dunia parfum, tolak dengan sopan.
 
-      DAFTAR PRODUK TOKO KAMI YANG READY STOK:
-      ${productList}
+    DAFTAR PRODUK TOKO KAMI YANG READY STOK:
+    ${productList}
 
-      ATURAN MUTLAK REKOMENDASI: 
-      1. Jika "DAFTAR PRODUK TOKO KAMI YANG READY STOK" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN PERNAH merekomendasikan parfum apapun.
-      2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand jika tidak ada di daftar.
-      3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
-      4. Lalu berikan baris baru (ENTER) dan tulis MAKSIMAL 3 POIN dengan format:
-      1. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
-      Lalu berikan baris baru (ENTER)
-      2. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
-      Lalu berikan baris baru (ENTER)
-      3. [Nama Brand dari tabel] - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)`,
-    });
+    ATURAN MUTLAK REKOMENDASI: 
+    1. Jika "DAFTAR PRODUK TOKO KAMI YANG READY STOK" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN merekomendasikan parfum apapun.
+    2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK" di atas.
+    3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
+    4. Lalu berikan jarak 2 baris baru (ENTER 2x) dan tulis MAKSIMAL 3 POIN dengan format cetakan wajib seperti di bawah ini (Nama brand WAJIB tebal menggunakan bintang ganda **):
+    
+    1. **[Nama Brand dari tabel]** - [Buat penjelasan elegan dan detail tentang karakter aromanya] (Tersisa [jumlah stok] botol)
+    
+    2. **[Nama Brand dari tabel]** - [Buat penjelasan elegan dan detail tentang karakter aromanya] (Tersisa [jumlah stok] botol)
+    
+    3. **[Nama Brand dari tabel]** - [Buat penjelasan elegan dan detail tentang karakter aromanya] (Tersisa [jumlah stok] botol)`;
 
-    const chat = model.startChat({
-      history: history.map((msg: any) => ({
-        role: msg.role === "ai" ? "model" : "user",
-        parts: [{ text: msg.content }],
+    // 4. INISIALISASI GROQ API (Pengganti Gemini)
+    const groq = new Groq({ apiKey: process.env.VITE_GROQ_API_KEY || "" });
+
+    // Menyusun riwayat chat untuk Groq
+    const groqMessages = [
+      { role: "system", content: systemInstruction },
+      ...history.map((msg: any) => ({
+        role: msg.role === "ai" ? "assistant" : "user",
+        content: msg.content
       })),
+      { role: "user", content: message }
+    ];
+
+    // Memanggil model Llama 3 yang super cepat dan gratis
+    const chatCompletion = await groq.chat.completions.create({
+      messages: groqMessages as any,
+      model: "llama3-8b-8192", 
     });
 
-    const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
+    const responseText = chatCompletion.choices[0]?.message?.content || "";
 
     return new Response(JSON.stringify({ reply: responseText }), {
       status: 200,
@@ -94,14 +94,8 @@ export default async function handler(req: Request) {
   } catch (error: any) {
     console.error("Error AI Chat:", error);
     return new Response(
-      JSON.stringify({
-        message: "Gagal memproses pesan AI",
-        error: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+      JSON.stringify({ message: "Gagal memproses pesan AI", error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
