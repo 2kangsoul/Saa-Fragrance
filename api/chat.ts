@@ -26,7 +26,8 @@ export default async function handler(req: Request) {
       Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), 
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
       Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan 
-      dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.`,
+      dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.
+      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). Gunakan paragraf biasa dan spasi antar baris yang rapi.`,
     });
 
     const chat = model.startChat({

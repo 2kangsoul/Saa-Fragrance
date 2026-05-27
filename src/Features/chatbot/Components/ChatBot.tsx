@@ -1,6 +1,7 @@
 // File: src/Features/product/components/ChatBot.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
+import ReactMarkdown from "react-markdown";
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -45,7 +46,12 @@ const ChatBot: React.FC = () => {
               return (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`p-2.5 max-w-[80%] rounded-xl text-sm ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}>
-                    {m.content}
+                    
+                    {/* INI BAGIAN YANG DIUBAH: Membungkus konten pesan dengan ReactMarkdown */}
+                    <ReactMarkdown>
+                      {m.content}
+                    </ReactMarkdown>
+                    
                   </div>
                 </div>
               );
