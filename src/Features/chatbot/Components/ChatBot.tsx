@@ -16,12 +16,25 @@ const ChatBot: React.FC = () => {
   }, [messages, isOpen]);
 
   const handleSend = () => {
+    if (!input.trim()) return;
     sendMessage(input);
     setInput("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSend();
+  };
+
+  // KUNCI UTAMA: Fungsi ini akan mencari teks dengan **bintang** dan menjadikannya BOLD tebal
+  const formatText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Potong tanda bintangnya (2 karakter awal & akhir) lalu beri class font-bold
+        return <strong key={index} className="font-bold">{part.slice(2, -2)}</strong>;
+      }
+      return <span key={index}>{part}</span>;
+    });
   };
 
   return (
@@ -44,9 +57,9 @@ const ChatBot: React.FC = () => {
               
               return (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  {/* KUNCI PERBAIKAN: Menambahkan 'whitespace-pre-wrap' di class bawah ini */}
                   <div className={`p-2.5 max-w-[80%] rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}>
-                    {m.content}
+                    {/* Pemanggilan fungsi formatText agar AI bisa mencetak teks BOLD */}
+                    {formatText(m.content)}
                   </div>
                 </div>
               );
