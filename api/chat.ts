@@ -19,7 +19,7 @@ export default async function handler(req: Request) {
 
     const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
 
-    // KUNCI UTAMA: Menggunakan Gemini 2.0 yang gratis dan aktif!
+    // KUNCI UTAMA: Menggunakan Gemini 3.5 Flash
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       systemInstruction: `Kamu adalah asisten ahli parfum bernama Fragrance AI.
@@ -27,7 +27,8 @@ export default async function handler(req: Request) {
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
       Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan 
       dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.
-      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). Gunakan paragraf biasa dan spasi antar baris yang rapi.`,
+      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). Gunakan paragraf biasa dan spasi antar baris yang rapi.
+      ATURAN TAMBAHAN: Berikan jawaban yang sangat singkat, padat, dan langsung pada intinya. Rangkum setiap penjelasanmu maksimal 2-3 paragraf pendek agar tidak terlalu panjang dibaca.`,
     });
 
     const chat = model.startChat({
