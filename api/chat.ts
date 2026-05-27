@@ -21,7 +21,7 @@ export default async function handler(req: Request) {
 
     // KUNCI UTAMA: Menggunakan Gemini 2.0 yang gratis dan aktif!
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.5-flash",
       systemInstruction: `Kamu adalah asisten ahli parfum bernama Fragrance AI.
       Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), 
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
