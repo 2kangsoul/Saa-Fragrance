@@ -27,8 +27,8 @@ export default async function handler(req: Request) {
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
       Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan 
       dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.
-      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). Gunakan paragraf biasa dan spasi antar baris yang rapi.
-      ATURAN TAMBAHAN: Berikan jawaban yang sangat singkat, padat, dan langsung pada intinya. Rangkum setiap penjelasanmu maksimal 2-3 paragraf pendek agar tidak terlalu panjang dibaca.`,
+      PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). 
+      ATURAN KHUSUS REKOMENDASI: Jika user meminta rekomendasi parfum, kamu WAJIB mengawalinya dengan kalimat persis seperti ini: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :" lalu berikan maksimal 3 rekomendasi menggunakan penomoran angka (1., 2., 3.). Berikan penjelasan yang sangat singkat, padat, dan langsung pada intinya di setiap poinnya.`,
     });
 
     const chat = model.startChat({
