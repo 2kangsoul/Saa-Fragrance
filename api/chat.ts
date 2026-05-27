@@ -17,8 +17,25 @@ export default async function handler(req: Request) {
     const body = await req.json();
     const { message, history } = body;
 
-    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
+    // 1. MENGAMBIL DATA DARI BACKENDLESS
+    const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
+    const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
+    
+    // UBAH "NamaTabelAnda" DI BAWAH INI DENGAN NAMA TABEL PRODUK ANDA!
+    const dbResponse = await fetch(`https://api.backendless.com/${appId}/${apiKey}/data/NamaTabelAnda?pageSize=50`);
+    const dbData = await dbResponse.json();
 
+    // 2. MERANGKUM DATABASE JADI TEKS UNTUK DIBACA AI
+    let productList = "Data produk sedang kosong.";
+    if (Array.isArray(dbData) && dbData.length > 0) {
+      productList = dbData
+        .filter((item: any) => item.stock > 0) // AI hanya akan membaca produk yang stoknya lebih dari 0
+        .map((item: any) => `- Brand: ${item.brand}, Aroma/Notes: ${item.notes}, Sisa Stok: ${item.stock}`)
+        .join("\n");
+    }
+
+    // 3. INISIALISASI AI & MENYUAPI DATA
+    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       systemInstruction: `Kamu adalah asisten ahli parfum bernama Fragrance AI.
@@ -27,13 +44,18 @@ export default async function handler(req: Request) {
       Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan 
       dan katakan bahwa kamu hanya diprogram untuk membantu urusan parfum.
       PENTING: Jawablah menggunakan teks biasa. JANGAN PERNAH menggunakan format markdown seperti tanda bintang (**) atau list strip (-). 
-      ATURAN KHUSUS REKOMENDASI: Jika user meminta rekomendasi parfum, kamu WAJIB mengawalinya dengan kalimat: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
+
+      DAFTAR PRODUK TOKO KAMI SAAT INI (Berdasarkan Database Asli):
+      ${productList}
+
+      ATURAN KHUSUS REKOMENDASI: Jika user meminta rekomendasi parfum, kamu WAJIB mencari yang paling cocok dari "DAFTAR PRODUK TOKO KAMI SAAT INI" terlebih dahulu.
+      Kamu WAJIB mengawalinya dengan kalimat: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
       Lalu berikan baris baru (ENTER) dan tuliskan rekomendasinya MAKSIMAL 3 POIN dengan format persis seperti ini:
-      1. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]
+      1. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)
       Lalu berikan baris baru (ENTER)
-      2. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]
+      2. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)
       Lalu berikan baris baru (ENTER)
-      3. [Nama Parfum] - [Penjelasan sangat singkat maksimal 2 kalimat]`,
+      3. [Nama Brand dari tabel] - [Penjelasan notes sangat singkat] (Tersisa ${'`[jumlah stok]`'} botol)`,
     });
 
     const chat = model.startChat({
