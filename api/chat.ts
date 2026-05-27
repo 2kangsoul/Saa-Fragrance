@@ -18,36 +18,31 @@ export default async function handler(req: Request) {
     const { message, history } = body;
 
     // 1. AMBIL DATA DARI BACKENDLESS SECARA DINAMIS
-    // Menggunakan API_URL bawaan Anda agar tidak nyasar ke server yang salah
-    const baseUrl =
-      process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
+    const baseUrl = process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
     const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
     const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
-
-    // ⚠️ PERHATIAN: Pastikan ini SAMA PERSIS dengan nama tabel di Backendless Anda!
-    // Jika di database namanya huruf kecil semua ("products"), ubah menjadi "products".
-    const tableName = "Product";
-
+    
+    // NAMA TABEL SUDAH DISESUAIKAN PERSIS DENGAN GAMBAR DATABASE ANDA
+    const tableName = "Product"; 
+    
     const fetchUrl = `${baseUrl}/${appId}/${apiKey}/data/${tableName}?pageSize=50`;
     const dbResponse = await fetch(fetchUrl);
     const dbData = await dbResponse.json();
 
-    // Log untuk mendeteksi error jika Backendless menolak akses
     if (!dbResponse.ok) {
       console.error("Gagal Mengambil Database:", dbData);
     }
 
-    // 2. OLAH DATA (Menyaring stok > 0)
+    // 2. OLAH DATA (Menyaring stok > 0 dan membaca array Backendless dengan aman)
     let productList = "KOSONG";
-    if (Array.isArray(dbData) && dbData.length > 0) {
-      const availableProducts = dbData
-        .filter((item: any) => parseInt(item.stock) > 0)
-        .map(
-          (item: any) =>
-            `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`,
-        )
-        .join("\n");
+    const records = Array.isArray(dbData) ? dbData : (dbData?.data || []);
 
+    if (records.length > 0) {
+      const availableProducts = records
+        .filter((item: any) => parseInt(item.stock) > 0)
+        .map((item: any) => `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok Tersisa: ${item.stock} botol`)
+        .join("\n");
+        
       if (availableProducts.length > 0) {
         productList = availableProducts;
       }
@@ -61,19 +56,21 @@ export default async function handler(req: Request) {
       Tugas utamamu HANYA menjawab pertanyaan seputar parfum, notes (top, heart, base), 
       performa SPL (Sillage, Projection, Longevity), dan memberikan rekomendasi parfum. 
       Jika user bertanya hal di luar dunia parfum atau wewangian, tolak dengan sopan.
-      PENTING: Jawablah menggunakan teks biasa tanpa format markdown (seperti tanda bintang atau list strip).
 
       DAFTAR PRODUK TOKO KAMI YANG READY STOK:
       ${productList}
 
       ATURAN MUTLAK REKOMENDASI: 
-      1. Jika "DAFTAR PRODUK TOKO KAMI" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN PERNAH merekomendasikan parfum apapun.
+      1. Jika "DAFTAR PRODUK TOKO KAMI YANG READY STOK" berisi "KOSONG", kamu WAJIB menjawab: "Mohon maaf, saat ini kami tidak dapat menarik data stok atau semua produk sedang habis." dan JANGAN PERNAH merekomendasikan parfum apapun.
       2. Kamu HANYA BOLEH merekomendasikan parfum yang ada di dalam "DAFTAR PRODUK TOKO KAMI YANG READY STOK" di atas. JANGAN PERNAH menyebutkan brand jika tidak ada di daftar.
       3. Awali dengan: "Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :"
-      4. Lalu berikan baris baru (ENTER) dan tulis MAKSIMAL 3 POIN dengan format:
-      1. [Nama Brand dari tabel] - [Penjelasan notes] (Tersisa [jumlah stok] botol)
-      Lalu berikan baris baru (ENTER)
-      2. [Nama Brand dari tabel] - [Penjelasan notes] (Tersisa [jumlah stok] botol)`,
+      4. Lalu berikan jarak 2 baris baru (ENTER 2x) dan tulis MAKSIMAL 3 POIN dengan format cetakan wajib seperti di bawah ini (Nama brand WAJIB tebal menggunakan bintang ganda **):
+      
+      1. **[Nama Brand dari tabel]** - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
+      
+      2. **[Nama Brand dari tabel]** - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)
+      
+      3. **[Nama Brand dari tabel]** - [Buat penjelasan yang menarik, elegan, dan detail tentang karakter aromanya berdasarkan notes tersebut. Jelaskan cocok dipakai untuk momen apa] (Tersisa [jumlah stok] botol)`,
     });
 
     const chat = model.startChat({
