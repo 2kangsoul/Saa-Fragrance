@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
+import { useAuthStore } from "../../../stores/useAuthStore"; // <-- IMPORT STORE DI SINI
 
 export default function MainLayout() {
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Ambil status login, data user, dan fungsi logout dari Zustand
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,18 +57,35 @@ export default function MainLayout() {
         </nav>
 
         <div className="hidden lg:flex items-center gap-3 text-xs font-medium">
-          <Link
-            to="/signin"
-            className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/register"
-            className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
-          >
-            Register
-          </Link>
+          {/* LOGIKA PERUBAHAN TAMPILAN HEADER (Ternary Operator) */}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-800">
+                Hai, {user?.name}
+              </span>
+              <button
+                onClick={logout}
+                className="px-3 py-1 text-red-500 font-bold hover:bg-red-50 hover:text-red-700 transition-colors rounded-md"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/register"
+                className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
+              >
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -86,9 +107,9 @@ export default function MainLayout() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-2">
             <img
-              src="https://via.placeholder.com/40x40?text=Logo"
-              alt="Logo"
-              className="h-8 mb-6"
+              src="/SaaFragrance.png"
+              alt="Saa Fragrance Logo"
+              className="h-10 mb-6 object-contain"
             />
             <div className="flex gap-4 text-gray-600">
               <Link to="#" className="hover:text-black">

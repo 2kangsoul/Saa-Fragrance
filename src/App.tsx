@@ -1,25 +1,34 @@
-// File: src/App.tsx
 import { Routes, Route } from "react-router-dom";
-import MainLayout from "./Features/landingpages/components/MainLayout";
+import { Toaster } from "react-hot-toast";
+
+// Import Layout
+import AuthLayout from "./layout/AuthLayout"; 
+
+// Import Halaman
 import Home from "./Features/landingpages/components/Home";
 import Products from "./page/Products";
-import ChatBot from "./Features/chatbot/Components/ChatBot"; // Import Komponen ChatBot Global
+import LoginPage from "./page/loginpage";
+import ChatBot from "./Features/chatbot/Components/ChatBot";
 
 function App() {
   return (
     <>
+      <Toaster position="top-center" />
+      
       <Routes>
-        {/* MainLayout akan membungkus semua halaman yang berada di dalam dirinya (Header & Footer) */}
-        <Route path="/" element={<MainLayout />}>
-          {/* Halaman utama (Landing Page) saat url "localhost:5173/" */}
-          <Route index element={<Home />} />
-
-          {/* Halaman Produk saat url "localhost:5173/products" */}
-          <Route path="products" element={<Products />} />
+        {/* AuthLayout SEKARANG MEMBUNGKUS SELURUH APLIKASI */}
+        <Route element={<AuthLayout />}>
+          
+          {/* Rute Bebas (Bisa diakses sebelum login) */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Rute Terlindungi (Wajib Login, diatur otomatis oleh AuthLayout) */}
+          <Route path="/products" element={<Products />} />
+          
         </Route>
       </Routes>
 
-      {/* Floating ChatBot Global yang akan muncul di setiap halaman */}
       <ChatBot />
     </>
   );

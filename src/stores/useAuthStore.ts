@@ -1,0 +1,73 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import backendlessApi from '../config/api';
+
+interface UserData {
+  name?: string;
+  email?: string;
+  objectId: string; 
+  userToken: string; 
+}
+
+interface AuthState {
+  isAuthenticated: boolean;
+  user: UserData | null;
+  setAuth: (userData: UserData) => void;
+  logout: () => void;
+  fetchCurrentUser: () => Promise<void>; 
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      isAuthenticated: false,
+      user: null,
+      setAuth: (userData) => set({ isAuthenticated: true, user: userData }),
+      logout: () => set({ isAuthenticated: false, user: null }),
+
+      fetchCurrentUser: async () => {
+        const currentUser = get().user;
+        
+        if (!currentUser?.userToken || !currentUser?.objectId) return;
+
+        try {
+          // =====================================================================
+          // INI ADALAH SATU-SATUNYA CONSOLE LOG YANG TERSISA (GRUP RAPI)
+          // =====================================================================
+          console.groupCollapsed(`🔐 [AuthStore] Sesi Aktif: ${currentUser.name || 'User'}`);
+          console.log(`🚀 Menembak API ID: ${currentUser.objectId}`);
+          console.log(`🔑 Token: ${currentUser.userToken}`);
+          
+          const response = await backendlessApi.get(`data/Users/${currentUser.objectId}`);
+          
+          console.log("✅ Data dari DB:", response.data);
+          
+          set({
+            user: {
+              ...currentUser,
+              name: response.data.name || currentUser.name,
+              email: response.data.email,
+              objectId: response.data.objectId,
+            }
+          });
+
+          console.log(`💾 State di RAM tersimpan: ${response.data.name}`);
+          console.groupEnd();
+
+        } catch (error) {
+          console.error("❌ [AuthStore] Gagal mengambil data:", error);
+        }
+      }
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({
+        isAuthenticated: state.isAuthenticated,
+        user: state.user ? {
+          userToken: state.user.userToken,
+          objectId: state.user.objectId, 
+        } : null,
+      }),
+    }
+  )
+);

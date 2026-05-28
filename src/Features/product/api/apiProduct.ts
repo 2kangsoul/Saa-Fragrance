@@ -13,7 +13,7 @@ export const useProducts = () => {
     const fetchProducts = async () => {
       try {
         const response = await backendlessApi.get<ProductType[]>(
-          "Product?pageSize=100",
+          "data/Product?pageSize=100",
         );
         setProducts(response.data);
       } catch (err: any) {

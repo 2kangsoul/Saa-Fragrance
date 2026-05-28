@@ -18,11 +18,12 @@ export default async function handler(req: Request) {
     const { message, history } = body;
 
     // 1. AMBIL DATA DARI BACKENDLESS
-    const baseUrl = process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
+    const baseUrl =
+      process.env.VITE_BACKENDLESS_API_URL || "https://api.backendless.com";
     const appId = process.env.VITE_BACKENDLESS_APP_ID || "";
     const apiKey = process.env.VITE_BACKENDLESS_REST_API_KEY || "";
-    const tableName = "Product"; 
-    
+    const tableName = "Product";
+
     const fetchUrl = `${baseUrl}/${appId}/${apiKey}/data/${tableName}?pageSize=50`;
     const dbResponse = await fetch(fetchUrl);
     const dbData = await dbResponse.json();
@@ -33,20 +34,22 @@ export default async function handler(req: Request) {
 
     // 2. OLAH DATA STOK
     let productList = "KOSONG";
-    const records = Array.isArray(dbData) ? dbData : (dbData?.data || []);
+    const records = Array.isArray(dbData) ? dbData : dbData?.data || [];
 
     if (records.length > 0) {
       const availableProducts = records
         .filter((item: any) => parseInt(item.stock) > 0)
-        .map((item: any) => `- Brand: ${item.brand}, Aroma: ${item.notes}, Stok: ${item.stock}`)
+        .map(
+          (item: any) =>
+            `- Brand: ${item.brand}, Aroma: ${item.notes}, Cocok Untuk: ${item.usage_time || "Belum ditentukan"}, Stok: ${item.stock}`,
+        )
         .join("\n");
-        
       if (availableProducts.length > 0) {
         productList = availableProducts;
       }
     }
 
-    // 3. INSTRUKSI KE AI (DI-UPGRADE: Etika Bisnis Owner, Dilarang Sebut Database, & Logika Cuaca/Waktu)
+    // 3. INSTRUKSI KE AI (DI-UPGRADE: Etika Bisnis Owner & Dilarang Sebut Database)
     const systemInstruction = `Kamu adalah Fragrance AI, representasi representatif dan asisten ahli parfum dari sebuah butik eksklusif. 
     
     GAYA BAHASA WAJIB: 
@@ -61,9 +64,6 @@ export default async function handler(req: Request) {
     ATURAN MENJAWAB:
     1. JIKA USER MEMINTA REKOMENDASI:
        - Pilih MAKSIMAL 3 parfum terbaik dari katalog di atas.
-       - ATURAN KLASIFIKASI AROMA (WAJIB DIPATUHI): 
-         * Untuk SIANG (Daytime/Panas): Wajib rekomendasikan parfum dengan notes Fresh, Citrus, Aquatic, Fruity, atau yang memiliki SPL tinggi untuk menembus cuaca panas (seperti Megamare atau Creed Aventus). DILARANG merekomendasikan aroma manis, powdery, atau warm (seperti Iris/Vanilla).
-         * Untuk MALAM (Night/Formal): Baru rekomendasikan aroma yang Sweet, Powdery, Woody, Leather, atau Iris (seperti Dior Homme Intense atau Tom Ford).
        - Gunakan format persis seperti ini (Nama brand wajib tebal dengan **):
        
        Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :
@@ -88,14 +88,14 @@ export default async function handler(req: Request) {
       { role: "system", content: systemInstruction },
       ...history.map((msg: any) => ({
         role: msg.role === "ai" ? "assistant" : "user",
-        content: msg.content
+        content: msg.content,
       })),
-      { role: "user", content: message }
+      { role: "user", content: message },
     ];
 
     const chatCompletion = await groq.chat.completions.create({
       messages: groqMessages as any,
-      model: "llama-3.3-70b-versatile", 
+      model: "llama-3.3-70b-versatile",
     });
 
     const responseText = chatCompletion.choices[0]?.message?.content || "";
@@ -107,8 +107,11 @@ export default async function handler(req: Request) {
   } catch (error: any) {
     console.error("Error AI Chat:", error);
     return new Response(
-      JSON.stringify({ message: "Gagal memproses pesan AI", error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        message: "Gagal memproses pesan AI",
+        error: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }
