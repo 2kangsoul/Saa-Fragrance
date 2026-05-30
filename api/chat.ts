@@ -32,7 +32,7 @@ export default async function handler(req: Request) {
       console.error("Gagal Mengambil Database:", dbData);
     }
 
-    // 2. OLAH DATA
+    // 2. OLAH DATA (MENAMBAHKAN FIELD 'TYPE')
     let productList = "KOSONG";
     const records = Array.isArray(dbData) ? dbData : dbData?.data || [];
 
@@ -45,8 +45,10 @@ export default async function handler(req: Request) {
           const longevity = item.longevity || "N/A";
           const usageValue = item.usage_time || "Versatile";
           const aromaNotes = item.notes || item.aroma || "Khas"; 
+          const typeValue = item.type || "N/A"; // <-- TAMBAHAN: Tarik Tipe (Niche/Designer)
           
-          return `- Nama Parfum: ${item.name}, Aroma: ${aromaNotes}, Waktu Penggunaan: ${usageValue}, Sillage: ${sillage}, Projection: ${projection}, Longevity: ${longevity}, Stok: ${item.stock}`;
+          // <-- TAMBAHAN: Masukkan "Tipe" ke dalam string yang dibaca AI
+          return `- Nama Parfum: ${item.name}, Tipe: ${typeValue}, Aroma: ${aromaNotes}, Waktu Penggunaan: ${usageValue}, Sillage: ${sillage}, Projection: ${projection}, Longevity: ${longevity}, Stok: ${item.stock}`;
         })
         .join("\n");
         
@@ -55,7 +57,7 @@ export default async function handler(req: Request) {
       }
     }
 
-    // 3. INSTRUKSI KE AI (DI-UPGRADE: Sentuhan Storytelling Aroma)
+    // 3. INSTRUKSI KE AI (DI-UPGRADE: Logika Pemahaman Tipe Niche/Designer)
     const systemInstruction = `Kamu adalah Fragrance AI, representasi representatif dan asisten ahli parfum dari sebuah butik eksklusif. 
     
     GAYA BAHASA WAJIB: 
@@ -68,18 +70,19 @@ export default async function handler(req: Request) {
     ${productList}
 
     ATURAN MENJAWAB:
-    1. JIKA USER MEMINTA REKOMENDASI (TERMASUK SPESIFIK UNTUK SIANG/MALAM):
+    1. JIKA USER MEMINTA REKOMENDASI (TERMASUK SPESIFIK TIPE NICHE/DESIGNER DAN SIANG/MALAM):
+       - WAJIB perhatikan permintaan tipe dari user. Jika user meminta parfum Niche, filter HANYA parfum dengan "Tipe: Niche". Jika meminta Designer, filter HANYA "Tipe: Designer".
        - WAJIB perhatikan permintaan waktu dari user. Jika user meminta parfum untuk siang hari, filter HANYA parfum dengan "Waktu Penggunaan: Siang" atau "Versatile". Berlaku juga untuk malam.
        - PRIORITAS UTAMA: Analisis nilai Sillage, Projection, dan Longevity dari katalog. PILIH MAKSIMAL 3 parfum yang memiliki nilai atau indikasi paling kuat (tertinggi/beast mode).
        - Gunakan format persis seperti ini (Nama parfum wajib tebal dengan **):
        
        Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :
 
-       1. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
+       1. **[Nama Parfum]** ([Tipe Parfum]) - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
        
-       2. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
+       2. **[Nama Parfum]** ([Tipe Parfum]) - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
        
-       3. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
+       3. **[Nama Parfum]** ([Tipe Parfum]) - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
 
     2. JIKA USER BERTANYA LANJUTAN ATAU DI LUAR PRODUK:
        - Jawab dengan etika bisnis yang ramah dan natural (maksimal 2-3 kalimat).

@@ -1,10 +1,12 @@
 // File: src/Features/product/hooks/filterringHooks.tsx
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // <-- TAMBAHAN BARU: Import useLocation
 import type { ProductType } from "../types/productTypes";
-import type { ProductFiltersHookReturn } from "../types/filteringTypes"; // Import Type
+import type { ProductFiltersHookReturn } from "../types/filteringTypes";
 
-// Terapkan ProductFiltersHookReturn pada fungsi
 export const useProductFilters = (products: ProductType[]): ProductFiltersHookReturn => {
+  const location = useLocation(); // <-- TAMBAHAN BARU: Inisialisasi hook location
+
   // --- STATE UNTUK FITUR PENCARIAN & FILTER ---
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortPrice, setSortPrice] = useState<string>("");
@@ -12,7 +14,10 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
   const [filterProjection, setFilterProjection] = useState<string>("");
   const [filterLongevity, setFilterLongevity] = useState<string>("");
   const [filterNotes, setFilterNotes] = useState<string>("");
-  const [filterType, setFilterType] = useState<string>(""); // <-- TAMBAHAN BARU
+  
+  // <-- PERUBAHAN DI SINI: Ambil nilai awal dari state Link jika ada, jika tidak kosongkan ("")
+  const [filterType, setFilterType] = useState<string>(location.state?.filterType || ""); 
+  
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // --- STATE UNTUK FITUR PAGINATION (NEXT PAGE) ---
@@ -28,7 +33,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     filterProjection,
     filterLongevity,
     filterNotes,
-    filterType, // <-- TAMBAHAN BARU
+    filterType,
   ]);
 
   // =======================================================================
@@ -38,7 +43,6 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
   const matchSearch = (p: ProductType) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-  // Ekstrak Tipe Parfum (Niche/Designer) yang unik
   const availableTypes = Array.from(
     new Set(
       products
@@ -50,7 +54,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
             (filterProjection ? p.projection === filterProjection : true) &&
             (filterLongevity ? p.longevity === filterLongevity : true)
         )
-        .map((p) => p.type) // Pastikan Backendless Anda menggunakan field 'type' atau sesuaikan (misal: p.brand)
+        .map((p) => p.type)
         .filter(Boolean)
     )
   );
@@ -124,7 +128,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
       const matchName = item.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-      const matchType = filterType ? item.type === filterType : true; // <-- TAMBAHAN BARU
+      const matchType = filterType ? item.type === filterType : true;
       const matchSillage = filterSillage
         ? item.sillage === filterSillage
         : true;
@@ -138,7 +142,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
 
       return (
         matchName &&
-        matchType && // <-- TAMBAHAN BARU
+        matchType &&
         matchSillage &&
         matchProjection &&
         matchLongevity &&
@@ -170,8 +174,8 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     setFilterLongevity,
     filterNotes,
     setFilterNotes,
-    filterType,       // <-- TAMBAHAN BARU
-    setFilterType,    // <-- TAMBAHAN BARU
+    filterType,
+    setFilterType,
     showFilters,
     setShowFilters,
     currentPage,
@@ -182,6 +186,6 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     availableSillage,
     availableProjection,
     availableLongevity,
-    availableTypes,   // <-- TAMBAHAN BARU
+    availableTypes,
   };
 };

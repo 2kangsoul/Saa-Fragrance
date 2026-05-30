@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 export default function NicheGuide() {
@@ -111,6 +110,7 @@ export default function NicheGuide() {
             </p>
             <Link 
               to="/products" 
+              state={{ filterType: "Niche" }} /* <-- TAMBAHAN INI */
               className="inline-flex items-center justify-center px-8 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-black hover:-translate-y-1 transition-all duration-300 shadow-lg"
             >
               Lihat Koleksi Parfum
