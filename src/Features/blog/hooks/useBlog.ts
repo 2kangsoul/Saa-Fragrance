@@ -23,7 +23,6 @@ export const useBlog = () => {
         });
         
         // Memetakan (Mapping) data Backendless agar sesuai dengan tipe BlogPost Anda
-        // ... kode sebelumnya di useBlog.ts ...
         const fetchedBlogs = res.data.map((item: any) => ({
           id: item.objectId, 
           title: item.title,
@@ -32,9 +31,10 @@ export const useBlog = () => {
           date: item.publishDate, 
           category: item.category,
           imageUrl: item.imageUrl,
-          content: item.content, // <-- TAMBAHKAN BARIS INI
+          imageUrl2: item.imageUrl2, // <-- TAMBAHAN
+          imageUrl3: item.imageUrl3, // <-- TAMBAHAN
+          content: item.content, 
         }));
-// ... kode setelahnya ...
 
         setBlogs(fetchedBlogs);
       } catch (error) {

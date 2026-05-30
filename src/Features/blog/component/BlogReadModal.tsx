@@ -62,6 +62,33 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
             <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
               {blog.content}
             </div>
+
+            {/* TAMBAHAN: Menampilkan Gambar 2 (Jika Ada) */}
+            {/* @ts-ignore - Mengabaikan error TS sementara jika type belum diupdate */}
+            {blog.imageUrl2 && (
+              <div className="mt-10">
+                <img 
+                  // @ts-ignore
+                  src={blog.imageUrl2} 
+                  alt="Ilustrasi 2" 
+                  className="w-full h-auto rounded-xl shadow-md object-cover"
+                />
+              </div>
+            )}
+
+            {/* TAMBAHAN: Menampilkan Gambar 3 (Jika Ada) */}
+            {/* @ts-ignore - Mengabaikan error TS sementara jika type belum diupdate */}
+            {blog.imageUrl3 && (
+              <div className="mt-10">
+                <img 
+                  // @ts-ignore
+                  src={blog.imageUrl3} 
+                  alt="Ilustrasi 3" 
+                  className="w-full h-auto rounded-xl shadow-md object-cover"
+                />
+              </div>
+            )}
+
           </div>
           
         </div>

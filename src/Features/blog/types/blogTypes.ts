@@ -7,4 +7,6 @@ export interface BlogPost {
   category: string;
   imageUrl: string;
   content: string;
+  imageUrl2?: string; // Tambahkan ini
+  imageUrl3?: string; // Tambahkan ini
 }
