@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
-import type { BlogPost } from "../types/blogTypes" // Sesuaikan path menuju file types Anda
+import type { BlogPost } from "../types/blogTypes";
 
 interface BlogCardProps {
   blog: BlogPost;
+  onReadMore: (blog: BlogPost) => void; // <-- TAMBAHAN PROPS INI
 }
 
-export default function BlogCard({ blog }: BlogCardProps) {
+export default function BlogCard({ blog, onReadMore }: BlogCardProps) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full group">
       {/* IMAGE */}
@@ -39,9 +39,9 @@ export default function BlogCard({ blog }: BlogCardProps) {
           {blog.excerpt}
         </p>
 
-        {/* LINK BUTTON */}
-        <Link
-          to={blog.id === 1 ? "/niche" : `/blog/${blog.id}`}
+        {/* UBAH LINK MENJADI BUTTON */}
+        <button
+          onClick={() => onReadMore(blog)}
           className="inline-flex items-center justify-center w-full py-3 bg-gray-50 text-gray-900 text-xs font-bold uppercase tracking-wider rounded-xl border border-gray-200 hover:bg-gray-900 hover:text-white transition-colors group/btn"
         >
           Baca Selengkapnya
@@ -52,14 +52,9 @@ export default function BlogCard({ blog }: BlogCardProps) {
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M14 5l7 7m0 0l-7 7m7-7H3"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
-        </Link>
+        </button>
       </div>
     </div>
   );
