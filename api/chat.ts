@@ -32,7 +32,7 @@ export default async function handler(req: Request) {
       console.error("Gagal Mengambil Database:", dbData);
     }
 
-    // 2. OLAH DATA (MENAMBAHKAN FIELD 'TYPE')
+    // 2. OLAH DATA (MENAMBAHKAN FIELD 'TYPE' & 'BLIND BUY')
     let productList = "KOSONG";
     const records = Array.isArray(dbData) ? dbData : dbData?.data || [];
 
@@ -45,10 +45,11 @@ export default async function handler(req: Request) {
           const longevity = item.longevity || "N/A";
           const usageValue = item.usage_time || "Versatile";
           const aromaNotes = item.notes || item.aroma || "Khas"; 
-          const typeValue = item.type || "N/A"; // <-- TAMBAHAN: Tarik Tipe (Niche/Designer)
+          const typeValue = item.type || "N/A";
+          const blindBuySafe = item.blind_buy_safe === true ? "Ya" : "Tidak"; // <-- TAMBAHAN: Tarik status Blind Buy
           
-          // <-- TAMBAHAN: Masukkan "Tipe" ke dalam string yang dibaca AI
-          return `- Nama Parfum: ${item.name}, Tipe: ${typeValue}, Aroma: ${aromaNotes}, Waktu Penggunaan: ${usageValue}, Sillage: ${sillage}, Projection: ${projection}, Longevity: ${longevity}, Stok: ${item.stock}`;
+          // <-- TAMBAHAN: Masukkan status Blind Buy ke string
+          return `- Nama Parfum: ${item.name}, Tipe: ${typeValue}, Aroma: ${aromaNotes}, Waktu Penggunaan: ${usageValue}, Sillage: ${sillage}, Projection: ${projection}, Longevity: ${longevity}, Stok: ${item.stock}, Aman Blind Buy: ${blindBuySafe}`;
         })
         .join("\n");
         
@@ -57,7 +58,7 @@ export default async function handler(req: Request) {
       }
     }
 
-    // 3. INSTRUKSI KE AI (DI-UPGRADE: Logika Pemahaman Tipe Niche/Designer)
+    // 3. INSTRUKSI KE AI (DI-UPGRADE: Logika Pemahaman Tipe Niche/Designer & Logika Blind Buy)
     const systemInstruction = `Kamu adalah Fragrance AI, representasi representatif dan asisten ahli parfum dari sebuah butik eksklusif. 
     
     GAYA BAHASA WAJIB: 
@@ -84,11 +85,15 @@ export default async function handler(req: Request) {
        
        3. **[Nama Parfum]** ([Tipe Parfum]) - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
 
-    2. JIKA USER BERTANYA LANJUTAN ATAU DI LUAR PRODUK:
+    2. ATURAN BLIND BUY (PEMBELIAN TANPA MENCIUM AROMA):
+       - Jika pengguna menyebutkan mencari kado, pemula, atau ingin "blind buy", prioritaskan parfum dengan "Aman Blind Buy: Ya".
+       - Jika parfum yang direkomendasikan memiliki status "Aman Blind Buy: Tidak", TETAP rekomendasikan untuk menarik minat, TAPI tambahkan kalimat peringatan yang menantang dan elegan di akhir deskripsi (misal: "Karya seni ini memiliki profil aroma yang sangat berani dan kompleks, menantang Anda yang ingin tampil beda, meski kurang disarankan untuk blind buy bagi pemula.").
+
+    3. JIKA USER BERTANYA LANJUTAN ATAU DI LUAR PRODUK:
        - Jawab dengan etika bisnis yang ramah dan natural (maksimal 2-3 kalimat).
        - Jika membahas detail parfum, berikan fakta berbobot berdasarkan koleksi kami.
 
-    3. Jika stok di katalog kosong, jawab dengan profesional: "Mohon maaf, koleksi kami saat ini sedang kehabisan stok."`;
+    4. Jika stok di katalog kosong, jawab dengan profesional: "Mohon maaf, koleksi kami saat ini sedang kehabisan stok."`;
 
     // 4. INISIALISASI GROQ API
     const groq = new Groq({ apiKey: process.env.VITE_GROQ_API_KEY || "" });
