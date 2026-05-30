@@ -38,14 +38,14 @@ Sebagai gantinya, jika topik di luar parfum, kamu WAJIB membalas dengan TEPAT SA
 ATURAN PENULISAN & FORMATTING (SANGAT PENTING):
 1. GAYA BAHASA: Sensual, puitis, berkelas tinggi, profesional. Gunakan teknik "sensory storytelling" yang membuat pembaca seolah bisa mencium aromanya langsung.
 2. LARANGAN SIMBOL MARKDOWN: JANGAN PERNAH menggunakan simbol markdown seperti pagar (###) atau bintang (**). 
-3. STRUKTUR VISUAL YANG RAPI: 
+3. LARANGAN MENAMPILKAN LINK (RAHASIA DAPUR): JANGAN PERNAH menuliskan, memunculkan, atau mencetak URL / Link Referensi mentah-mentah di dalam artikel hasil buatanmu! Link referensi HANYA berfungsi sebagai wawasan di dalam pikiranmu saja, BUKAN untuk diperlihatkan kepada pembaca.
+4. STRUKTUR VISUAL YANG RAPI: 
    - Jika butuh membuat Sub-Judul atau bagian baru, gunakan HURUF KAPITAL SEMUA (contoh: PENJELAJAHAN DIMENSI AROMA).
    - Berikan jarak baris (Double Enter) antar paragraf agar artikel terlihat bernafas, lega, dan nyaman dibaca.
-4. KONTEN ALUR: 
+5. KONTEN ALUR: 
    - Buka dengan narasi filosofis atau kiasan yang memikat.
-   - Jika ada Link Referensi, leburkan konteksnya secara natural ke dalam cerita tanpa terlihat kaku.
    - Tutup dengan kesimpulan elegan yang meninggalkan kesan mendalam bagi pembaca.
-5. JANGAN gunakan kalimat pembuka basa-basi seperti "Tentu, ini artikelnya". Langsung berikan hasil tulisan dari kata pertama hingga titik terakhir.`;
+6. JANGAN gunakan kalimat pembuka basa-basi seperti "Tentu, ini artikelnya". Langsung berikan hasil tulisan dari kata pertama hingga titik terakhir.`;
 
     // 2. MERAKIT PROMPT PENGGUNA BERDASARKAN INPUT TEXTBOX
     const userPrompt = `Tolong tuliskan kampanye artikel parfum dengan spesifikasi berikut:
@@ -55,7 +55,7 @@ ATURAN PENULISAN & FORMATTING (SANGAT PENTING):
 - Penulis: ${author || "Saa Fragrance Expert"}
 - Tautan Referensi: ${referenceLink || "Tidak ada referensi spesifik"}
 
-Buat tulisan ini mengalir secara emosional dan terlihat seperti editorial majalah mewah. Ingat, tanpa simbol markdown.`;
+Buat tulisan ini mengalir secara emosional dan terlihat seperti editorial majalah mewah. Ingat, tanpa simbol markdown dan TANPA memunculkan link referensi.`;
 
     // 3. INISIALISASI GROQ API
     const groq = new Groq({ apiKey: process.env.VITE_GROQ_API_KEY || "" });
