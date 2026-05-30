@@ -32,7 +32,7 @@ export default async function handler(req: Request) {
       console.error("Gagal Mengambil Database:", dbData);
     }
 
-    // 2. OLAH DATA: MENYESUAIKAN DENGAN KOLOM ASLI DI TABEL ANDA
+    // 2. OLAH DATA
     let productList = "KOSONG";
     const records = Array.isArray(dbData) ? dbData : dbData?.data || [];
 
@@ -40,14 +40,12 @@ export default async function handler(req: Request) {
       const availableProducts = records
         .filter((item: any) => parseInt(item.stock) > 0)
         .map((item: any) => {
-          // Menangkap nilai Sillage, Projection, dan Longevity secara terpisah
           const sillage = item.sillage || "N/A";
           const projection = item.projection || "N/A";
           const longevity = item.longevity || "N/A";
           const usageValue = item.usage_time || "Versatile";
-          const aromaNotes = item.notes || item.aroma || "Khas"; // Antisipasi jika nama kolom notes berbeda
+          const aromaNotes = item.notes || item.aroma || "Khas"; 
           
-          // Menggabungkan ketiganya agar AI bisa membacanya sebagai satu kesatuan SPL
           return `- Nama Parfum: ${item.name}, Aroma: ${aromaNotes}, Waktu Penggunaan: ${usageValue}, Sillage: ${sillage}, Projection: ${projection}, Longevity: ${longevity}, Stok: ${item.stock}`;
         })
         .join("\n");
@@ -57,12 +55,12 @@ export default async function handler(req: Request) {
       }
     }
 
-    // 3. INSTRUKSI KE AI (DI-UPGRADE UNTUK MEMBACA 3 KOLOM SPL TERPISAH)
+    // 3. INSTRUKSI KE AI (DI-UPGRADE: Sentuhan Storytelling Aroma)
     const systemInstruction = `Kamu adalah Fragrance AI, representasi representatif dan asisten ahli parfum dari sebuah butik eksklusif. 
     
     GAYA BAHASA WAJIB: 
     - Singkat, padat, elegan, dan jelas layaknya seorang pemilik butik parfum berkelas. HINDARI basa-basi panjang.
-    - Jawaban harus berbobot: Fokus pada evaluasi performa Sillage, Projection, dan Longevity yang tercatat di katalog.
+    - Storytelling Aroma: Deskripsikan notes parfum dengan narasi visual yang singkat namun imajinatif (misal: "Membawa Anda ke pelukan hangat kayu cedar di malam hari..."), sehingga pelanggan bisa langsung membayangkan sensasi wanginya di dunia nyata.
     - Tampil elegan dan percaya diri.
     - LARANGAN KERAS: JANGAN PERNAH menggunakan kata "database", "data mentah", "sistem", atau istilah teknis IT lainnya kepada pelanggan. 
 
@@ -77,11 +75,11 @@ export default async function handler(req: Request) {
        
        Rekomendasi parfume dari Fragrance AI sendiri terdiri dari :
 
-       1. **[Nama Parfum]** - [Tulis 1-2 kalimat super padat tentang karakter aroma. Wajib pamerkan gabungan kekuatan Sillage, Projection, dan Longevity-nya secara elegan berdasarkan data katalog asli] (Tersisa [jumlah] botol)
+       1. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
        
-       2. **[Nama Parfum]** - [Tulis 1-2 kalimat super padat tentang karakter aroma. Wajib pamerkan gabungan kekuatan Sillage, Projection, dan Longevity-nya secara elegan berdasarkan data katalog asli] (Tersisa [jumlah] botol)
+       2. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
        
-       3. **[Nama Parfum]** - [Tulis 1-2 kalimat super padat tentang karakter aroma. Wajib pamerkan gabungan kekuatan Sillage, Projection, dan Longevity-nya secara elegan berdasarkan data katalog asli] (Tersisa [jumlah] botol)
+       3. **[Nama Parfum]** - [Tulis 1 kalimat storytelling visual yang elegan agar pelanggan bisa membayangkan sensasi aromanya. Lalu, sambung dengan 1 kalimat yang menyebutkan angka Sillage, Projection, dan Longevity-nya secara presisi dari katalog] (Tersisa [jumlah] botol)
 
     2. JIKA USER BERTANYA LANJUTAN ATAU DI LUAR PRODUK:
        - Jawab dengan etika bisnis yang ramah dan natural (maksimal 2-3 kalimat).
