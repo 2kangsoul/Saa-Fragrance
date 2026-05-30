@@ -7,19 +7,14 @@ export default function AuthLayout() {
   const { isAuthenticated, user, fetchCurrentUser } = useAuthStore();
   const location = useLocation();
 
-  // =========================================================================
-  // SENSOR REFRESH: Ambil nama dari Backendless jika RAM kosong tapi token ada
-  // =========================================================================
+  // Sensor Auto-Restore saat Refresh
   useEffect(() => {
-    // Jika status login TRUE, ADA token, tapi NAMANYA KOSONG (berarti web baru di-refresh)
     if (isAuthenticated && user?.userToken && !user?.name) {
       fetchCurrentUser();
     }
   }, [isAuthenticated, user, fetchCurrentUser]);
 
-  // =========================================================================
-  // SENSOR ANTI-HAPUS: Memaksa RAM menulis ulang ke Local Storage
-  // =========================================================================
+  // Sensor Anti-Hapus Local Storage
   useEffect(() => {
     if (isAuthenticated) {
       const checkStorage = localStorage.getItem("auth-storage");
@@ -29,17 +24,30 @@ export default function AuthLayout() {
     }
   }, [location.pathname, isAuthenticated, user]);
 
-  const publicRoutes = ["/", "/login", "/register"];
 
-  // LOGIKA 1: Belum login tapi masuk ke halaman private
-  if (!isAuthenticated && !publicRoutes.includes(location.pathname)) {
-    return <Navigate to="/login" replace />;
-  }
+  // =========================================================================
+  // LOGIKA PENGUNCIAN HALAMAN (GUEST vs PRIVATE)
+  // =========================================================================
 
-  // LOGIKA 2: Sudah login tapi maksa buka halaman login
-  if (isAuthenticated && location.pathname === "/login") {
+  // 1. Daftar Halaman yang HANYA BOLEH dibuka oleh orang yang BELUM LOGIN
+  // (Masukkan path landing page awal Anda di sini jika ada, misal "/welcome")
+  const guestOnlyRoutes = ["/login", "/register"]; 
+
+  // 2. Daftar Halaman Bebas (Boleh diakses sebelum maupun sesudah login)
+  const publicRoutes = ["/"]; // Ubah sesuai kebutuhan. Jika "/" khusus yang sudah login, hapus dari sini.
+
+  // SKENARIO A: Orang SUDAH LOGIN, tapi iseng tekan tombol Back ke /login atau /register
+  if (isAuthenticated && guestOnlyRoutes.includes(location.pathname)) {
+    // Tendang balik ke halaman dalam (misal "/") dan HANCURKAN histori tombol Back-nya (replace: true)
     return <Navigate to="/" replace />;
   }
 
+  // SKENARIO B: Orang BELUM LOGIN, tapi maksa mau masuk ke halaman dalam (misal /cart, /products)
+  if (!isAuthenticated && !guestOnlyRoutes.includes(location.pathname) && !publicRoutes.includes(location.pathname)) {
+    // Tendang ke halaman login, dan replace history agar saat ditekan Back tidak error
+    return <Navigate to="/login" replace />;
+  }
+
+  // Jika semua aman, render halamannya
   return <MainLayout />;
 }
