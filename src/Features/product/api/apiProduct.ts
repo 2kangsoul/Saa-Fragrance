@@ -10,7 +10,7 @@ export const useProducts = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProducts = async (isRetry = false) => {
       try {
         const response = await backendlessApi.get<ProductType[]>(
           "data/Product?pageSize=100",
@@ -18,26 +18,24 @@ export const useProducts = () => {
         setProducts(response.data);
       } catch (err: any) {
         console.error("Gagal mengambil data produk dari Backendless:", err);
-        
+
+        // LOGIKA PENANGKAL EXPIRED TOKEN:
+        // Mengecek apakah error disebabkan oleh token sesi yang hangus
         const errorMessage = err.response?.data?.message || err.message;
         const statusCode = err.response?.status;
-        
-        // Deteksi masalah token/sesi secara lebih luas (401 Unauthorized / 403 Forbidden)
-        const isSessionExpired = 
-          statusCode === 401 || 
-          statusCode === 403 ||
-          (typeof errorMessage === "string" && (errorMessage.toLowerCase().includes("session") || errorMessage.toLowerCase().includes("token")));
 
-        if (isSessionExpired) {
-          // 1. Bersihkan semua riwayat login di storage
+        const isSessionExpired =
+          statusCode === 401 ||
+          (typeof errorMessage === "string" &&
+            errorMessage.toLowerCase().includes("session"));
+
+        if (isSessionExpired && !isRetry) {
+          // 1. Bersihkan token yang kadaluwarsa
           localStorage.removeItem("userToken");
-          localStorage.removeItem("user");
-          sessionStorage.clear();
-          
-          // 2. Sapu bersih memori aplikasi dengan me-reload halaman
-          // Ini akan memaksa backendlessApi membuang token lama dan mereset Navbar Anda
-          window.location.reload();
-          return; // Hentikan eksekusi kode di sini
+          // Anda bisa menambahkan removeItem lain jika ada (misal: "userData")
+
+          // 2. Coba panggil lagi secara publik (isRetry = true)
+          return fetchProducts(true);
         }
 
         setError(
