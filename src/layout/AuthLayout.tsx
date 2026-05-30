@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
-import MainLayout from "../Features/header/MainLayout";
+import MainLayout from "../Features/header/component/MainLayout";
 
 export default function AuthLayout() {
   const { isAuthenticated, user, fetchCurrentUser } = useAuthStore();

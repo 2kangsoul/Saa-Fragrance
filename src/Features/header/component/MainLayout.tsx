@@ -1,28 +1,16 @@
-import { useState, useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
-import { useAuthStore } from "../../../src/stores/useAuthStore"; // <-- IMPORT STORE DI SINI
+import { useMainLayout } from "../hooks/useMainLayout"; // <-- JALUR IMPORT DIPERBAIKI
 
 export default function MainLayout() {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  // STATE BARU: Untuk mengontrol buka/tutup menu di layar HP
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Ambil status login, data user, dan fungsi logout dari Zustand
-  const { isAuthenticated, user, logout } = useAuthStore();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // Panggil semua state dan fungsi dari custom hook yang sudah kita buat
+  const {
+    isScrolled,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    isAuthenticated,
+    user,
+    logout,
+  } = useMainLayout();
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
