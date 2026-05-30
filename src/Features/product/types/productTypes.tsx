@@ -13,6 +13,7 @@ export interface ProductType {
   longevity: string;
   notes: string;
   description: string;
+  type: string;
 }
 
 // Karena ini file .tsx, kita bisa menambahkan komponen kecil atau 

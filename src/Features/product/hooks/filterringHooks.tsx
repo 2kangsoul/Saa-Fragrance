@@ -12,6 +12,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
   const [filterProjection, setFilterProjection] = useState<string>("");
   const [filterLongevity, setFilterLongevity] = useState<string>("");
   const [filterNotes, setFilterNotes] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>(""); // <-- TAMBAHAN BARU
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // --- STATE UNTUK FITUR PAGINATION (NEXT PAGE) ---
@@ -27,6 +28,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     filterProjection,
     filterLongevity,
     filterNotes,
+    filterType, // <-- TAMBAHAN BARU
   ]);
 
   // =======================================================================
@@ -36,19 +38,37 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
   const matchSearch = (p: ProductType) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase());
 
+  // Ekstrak Tipe Parfum (Niche/Designer) yang unik
+  const availableTypes = Array.from(
+    new Set(
+      products
+        .filter(
+          (p) =>
+            matchSearch(p) &&
+            (filterNotes ? p.notes === filterNotes : true) &&
+            (filterSillage ? p.sillage === filterSillage : true) &&
+            (filterProjection ? p.projection === filterProjection : true) &&
+            (filterLongevity ? p.longevity === filterLongevity : true)
+        )
+        .map((p) => p.type) // Pastikan Backendless Anda menggunakan field 'type' atau sesuaikan (misal: p.brand)
+        .filter(Boolean)
+    )
+  );
+
   const availableNotes = Array.from(
     new Set(
       products
         .filter(
           (p) =>
             matchSearch(p) &&
+            (filterType ? p.type === filterType : true) &&
             (filterSillage ? p.sillage === filterSillage : true) &&
             (filterProjection ? p.projection === filterProjection : true) &&
-            (filterLongevity ? p.longevity === filterLongevity : true),
+            (filterLongevity ? p.longevity === filterLongevity : true)
         )
         .map((p) => p.notes)
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   );
 
   const availableSillage = Array.from(
@@ -57,13 +77,14 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
         .filter(
           (p) =>
             matchSearch(p) &&
+            (filterType ? p.type === filterType : true) &&
             (filterNotes ? p.notes === filterNotes : true) &&
             (filterProjection ? p.projection === filterProjection : true) &&
-            (filterLongevity ? p.longevity === filterLongevity : true),
+            (filterLongevity ? p.longevity === filterLongevity : true)
         )
         .map((p) => p.sillage)
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   );
 
   const availableProjection = Array.from(
@@ -72,13 +93,14 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
         .filter(
           (p) =>
             matchSearch(p) &&
+            (filterType ? p.type === filterType : true) &&
             (filterNotes ? p.notes === filterNotes : true) &&
             (filterSillage ? p.sillage === filterSillage : true) &&
-            (filterLongevity ? p.longevity === filterLongevity : true),
+            (filterLongevity ? p.longevity === filterLongevity : true)
         )
         .map((p) => p.projection)
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   );
 
   const availableLongevity = Array.from(
@@ -87,13 +109,14 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
         .filter(
           (p) =>
             matchSearch(p) &&
+            (filterType ? p.type === filterType : true) &&
             (filterNotes ? p.notes === filterNotes : true) &&
             (filterSillage ? p.sillage === filterSillage : true) &&
-            (filterProjection ? p.projection === filterProjection : true),
+            (filterProjection ? p.projection === filterProjection : true)
         )
         .map((p) => p.longevity)
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   );
 
   const filteredProducts = products
@@ -101,6 +124,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
       const matchName = item.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
+      const matchType = filterType ? item.type === filterType : true; // <-- TAMBAHAN BARU
       const matchSillage = filterSillage
         ? item.sillage === filterSillage
         : true;
@@ -114,6 +138,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
 
       return (
         matchName &&
+        matchType && // <-- TAMBAHAN BARU
         matchSillage &&
         matchProjection &&
         matchLongevity &&
@@ -129,7 +154,7 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return {
@@ -145,6 +170,8 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     setFilterLongevity,
     filterNotes,
     setFilterNotes,
+    filterType,       // <-- TAMBAHAN BARU
+    setFilterType,    // <-- TAMBAHAN BARU
     showFilters,
     setShowFilters,
     currentPage,
@@ -155,5 +182,6 @@ export const useProductFilters = (products: ProductType[]): ProductFiltersHookRe
     availableSillage,
     availableProjection,
     availableLongevity,
+    availableTypes,   // <-- TAMBAHAN BARU
   };
 };

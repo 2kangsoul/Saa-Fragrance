@@ -15,12 +15,16 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
   setFilterLongevity,
   filterNotes,
   setFilterNotes,
+  filterType,
+  setFilterType,
   showFilters,
   setShowFilters,
-  availableNotes,
-  availableSillage,
-  availableProjection,
-  availableLongevity,
+  // JARING PENGAMAN: Tambahkan = [] agar tidak crash jika data belum turun dari parent
+  availableNotes = [],
+  availableSillage = [],
+  availableProjection = [],
+  availableLongevity = [],
+  availableTypes = [], 
 }) => {
   return (
     <>
@@ -58,7 +62,27 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
 
       {/* Panel Filter Spesifik */}
       {showFilters && (
-        <div className="mb-8 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 bg-white py-4 px-5 rounded-2xl shadow-sm border border-gray-100 animate-fade-in">
+        <div className="mb-8 grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 bg-white py-4 px-5 rounded-2xl shadow-sm border border-gray-100 animate-fade-in">
+          
+          {/* KOTAK FILTER TIPE (NICHE/DESIGNER) */}
+          <div className="flex flex-col">
+            <label className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
+              Tipe Parfum
+            </label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="select select-bordered select-sm text-xs rounded-lg bg-[#f8f7f4] focus:outline-none"
+            >
+              <option value="">Semua Tipe</option>
+              {availableTypes?.map((type, idx) => (
+                <option key={idx} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex flex-col">
             <label className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
               Aroma Notes
@@ -69,13 +93,14 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
               className="select select-bordered select-sm text-xs rounded-lg bg-[#f8f7f4] focus:outline-none"
             >
               <option value="">Semua Notes</option>
-              {availableNotes.map((note, idx) => (
+              {availableNotes?.map((note, idx) => (
                 <option key={idx} value={note}>
                   {note}
                 </option>
               ))}
             </select>
           </div>
+          
           <div className="flex flex-col">
             <label className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
               Sillage
@@ -86,13 +111,14 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
               className="select select-bordered select-sm text-xs rounded-lg bg-[#f8f7f4] focus:outline-none"
             >
               <option value="">Semua Sillage</option>
-              {availableSillage.map((item, idx) => (
+              {availableSillage?.map((item, idx) => (
                 <option key={idx} value={item}>
                   ⭐ {item}/10
                 </option>
               ))}
             </select>
           </div>
+          
           <div className="flex flex-col">
             <label className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
               Projection
@@ -103,13 +129,14 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
               className="select select-bordered select-sm text-xs rounded-lg bg-[#f8f7f4] focus:outline-none"
             >
               <option value="">Semua Projection</option>
-              {availableProjection.map((item, idx) => (
+              {availableProjection?.map((item, idx) => (
                 <option key={idx} value={item}>
                   ⭐ {item}/10
                 </option>
               ))}
             </select>
           </div>
+          
           <div className="flex flex-col">
             <label className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
               Longevity
@@ -120,16 +147,18 @@ const FilteringProduct: React.FC<FilteringProductProps> = ({
               className="select select-bordered select-sm text-xs rounded-lg bg-[#f8f7f4] focus:outline-none"
             >
               <option value="">Semua Longevity</option>
-              {availableLongevity.map((item, idx) => (
+              {availableLongevity?.map((item, idx) => (
                 <option key={idx} value={item}>
                   ⭐ {item}/10
                 </option>
               ))}
             </select>
           </div>
-          <div className="col-span-2 md:col-span-4 mt-1 flex justify-end">
+          
+          <div className="col-span-2 md:col-span-5 mt-1 flex justify-end">
             <button
               onClick={() => {
+                setFilterType(""); 
                 setFilterSillage("");
                 setFilterProjection("");
                 setFilterLongevity("");

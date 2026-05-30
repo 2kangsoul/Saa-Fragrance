@@ -27,6 +27,8 @@ const Products: React.FC = () => {
     setFilterLongevity,
     filterNotes,
     setFilterNotes,
+    filterType,          // <-- TAMBAHAN BARU
+    setFilterType,       // <-- TAMBAHAN BARU
     showFilters,
     setShowFilters,
     currentPage,
@@ -37,6 +39,7 @@ const Products: React.FC = () => {
     availableSillage,
     availableProjection,
     availableLongevity,
+    availableTypes,      // <-- TAMBAHAN BARU
   } = useProductFilters(products);
 
   const { showLoginModal, setShowLoginModal, handleAddToCart } =
@@ -95,12 +98,15 @@ const Products: React.FC = () => {
           setFilterLongevity={setFilterLongevity}
           filterNotes={filterNotes}
           setFilterNotes={setFilterNotes}
+          filterType={filterType}             // <-- TAMBAHAN BARU
+          setFilterType={setFilterType}       // <-- TAMBAHAN BARU
           showFilters={showFilters}
           setShowFilters={setShowFilters}
           availableNotes={availableNotes}
           availableSillage={availableSillage}
           availableProjection={availableProjection}
           availableLongevity={availableLongevity}
+          availableTypes={availableTypes}     // <-- TAMBAHAN BARU
         />
 
         {/* AREA KONTEN (Loading, Error, Empty, atau Grid Data) */}

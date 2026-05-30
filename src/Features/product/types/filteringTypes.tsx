@@ -16,12 +16,15 @@ export interface FilteringProductProps {
   setFilterLongevity: (val: string) => void;
   filterNotes: string;
   setFilterNotes: (val: string) => void;
+  filterType: string; // <-- TAMBAHAN BARU
+  setFilterType: (val: string) => void; // <-- TAMBAHAN BARU
   showFilters: boolean;
   setShowFilters: (val: boolean) => void;
   availableNotes: string[];
   availableSillage: string[];
   availableProjection: string[];
   availableLongevity: string[];
+  availableTypes: string[]; // <-- TAMBAHAN BARU
 }
 
 // Tipe data untuk nilai yang dikembalikan oleh Custom Hook useProductFilters
