@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useMainLayout } from "../hooks/useMainLayout";
 import AdminManagerModal from "../../adminmanage/AdminManagerModal";
 import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal";
-import BlogManagerModal from "../../blogmanage/BlogManagerModal" // <-- TAMBAHAN IMPORT BLOG
+import BlogManagerModal from "../../blogmanage/BlogManagerModal"
 
 export default function MainLayout() {
   const {
@@ -18,7 +18,7 @@ export default function MainLayout() {
   const [isManageMenuOpen, setIsManageMenuOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isPerfumeModalOpen, setIsPerfumeModalOpen] = useState(false);
-  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false); // <-- TAMBAHAN STATE BLOG
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
@@ -62,7 +62,9 @@ export default function MainLayout() {
                 Hai, {user?.name}
               </span>
 
-              {(user?.role === "owner" || user?.role === "admin") && (
+              {/* LOGIKA ROLE UNTUK DESKTOP */}
+              {(user?.role === "owner" || user?.role === "admin") ? (
+                // Tampilan untuk Owner / Admin (Pakai Dropdown)
                 <div className="relative">
                   <button
                     onClick={() => setIsManageMenuOpen(!isManageMenuOpen)}
@@ -76,12 +78,7 @@ export default function MainLayout() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
@@ -97,7 +94,6 @@ export default function MainLayout() {
                         📦 Manage Parfume
                       </button>
                       
-                      {/* <-- TAMBAHAN TOMBOL MANAGE BLOG (DESKTOP) --> */}
                       <button
                         onClick={() => {
                           setIsManageMenuOpen(false);
@@ -122,6 +118,14 @@ export default function MainLayout() {
                     </div>
                   )}
                 </div>
+              ) : (
+                // Tampilan untuk User Biasa (Langsung Tombol Saja)
+                <button
+                  onClick={() => setIsBlogModalOpen(true)}
+                  className="flex items-center gap-1 px-3 py-1 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md"
+                >
+                  ✍️ Manage Blog
+                </button>
               )}
 
               <button
@@ -149,64 +153,32 @@ export default function MainLayout() {
           )}
         </div>
 
+        {/* TOMBOL MENU MOBILE */}
         <button
           className="lg:hidden p-2 text-gray-800 focus:outline-none"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           )}
         </button>
 
+        {/* MENU MOBILE */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 w-full bg-[#f4f2ee]/95 backdrop-blur-md shadow-md border-t border-gray-200 flex flex-col px-6 py-6 gap-4 transition-all z-50">
-            <Link
-              to="/products"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
-            >
+            <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
               Products
             </Link>
-            <Link
-              to="/team"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
-            >
+            <Link to="/team" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
               Team
             </Link>
-            <Link
-              to="/aboutus"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
-            >
+            <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
               About Us
             </Link>
 
@@ -218,7 +190,9 @@ export default function MainLayout() {
                   Hai, {user?.name}
                 </span>
 
-                {(user?.role === "owner" || user?.role === "admin") && (
+                {/* LOGIKA ROLE UNTUK MOBILE */}
+                {(user?.role === "owner" || user?.role === "admin") ? (
+                  // Menu Mobile untuk Owner/Admin
                   <div className="flex flex-col gap-3 pl-3 border-l-2 border-gray-300">
                     <button
                       onClick={() => {
@@ -230,7 +204,6 @@ export default function MainLayout() {
                       📦 Manage Parfume
                     </button>
                     
-                    {/* <-- TAMBAHAN TOMBOL MANAGE BLOG (MOBILE) --> */}
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
@@ -253,6 +226,17 @@ export default function MainLayout() {
                       </button>
                     )}
                   </div>
+                ) : (
+                  // Menu Mobile untuk User Biasa
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsBlogModalOpen(true); 
+                    }}
+                    className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
+                  >
+                    ✍️ Manage Blog
+                  </button>
                 )}
 
                 <button
@@ -291,6 +275,7 @@ export default function MainLayout() {
         <Outlet />
       </main>
 
+      {/* SEMUA MODAL POPUP */}
       <AdminManagerModal
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
@@ -301,7 +286,6 @@ export default function MainLayout() {
         onClose={() => setIsPerfumeModalOpen(false)}
       />
 
-      {/* <-- TAMBAHAN: Komponen Modal Manage Blog --> */}
       <BlogManagerModal
         isOpen={isBlogModalOpen}
         onClose={() => setIsBlogModalOpen(false)}
@@ -312,7 +296,7 @@ export default function MainLayout() {
       </div>
 
       <footer className="max-w-7xl mx-auto px-6 py-12 text-sm">
-        {/* Footer sama seperti sebelumnya */}
+        {/* Konten Footer */}
       </footer>
     </div>
   );

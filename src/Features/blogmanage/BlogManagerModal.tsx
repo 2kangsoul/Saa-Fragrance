@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import backendlessApi from "../../config/api" // <-- INI YANG DIPERBAIKI
+import backendlessApi from "../../config/api"
 
 interface BlogManagerModalProps {
   isOpen: boolean;
@@ -36,7 +36,6 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
     const loadingToast = toast.loading("AI Llama 3.3 sedang meracik artikel...");
 
     try {
-      // Ingat: path ini memanggil folder /api yang Anda buat tadi
       const response = await fetch("/api/generate-blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,14 +77,13 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
     const loadingToast = toast.loading("Menyimpan ke database...");
 
     try {
-      // Tarik format tanggal hari ini untuk kolom date
+      // Tarik format tanggal hari ini untuk kolom publishDate
       const currentDate = new Date().toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
         year: "numeric",
       });
 
-      // ... kode sebelumnya ...
       await backendlessApi.post("data/Blogs", {
         title: formData.title,
         category: formData.category,
@@ -93,9 +91,8 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
         author: formData.author,
         imageUrl: formData.imageUrl,
         content: formData.content,
-        publishDate: currentDate, // <-- UBAH KATA 'date' MENJADI 'publishDate' DI SINI
+        publishDate: currentDate, 
       });
-      // ... kode setelahnya ...
 
       toast.success("Artikel berhasil diterbitkan!", { id: loadingToast });
       
@@ -206,17 +203,17 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
               </button>
             </div>
 
-            {/* KOLOM KANAN: Textarea Hasil */}
+            {/* KOLOM KANAN: Textarea Hasil (Sekarang bernama FULL REVIEW) */}
             <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
               <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Editor Artikel (Markdown)</span>
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Full Review</span>
               </div>
               <textarea
                 name="content"
                 value={formData.content}
                 onChange={handleChange}
                 className="flex-1 w-full p-4 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none"
-                placeholder="Hasil generate AI akan muncul di sini. Anda juga bisa mengetik manual atau mengedit hasil AI sebelum disimpan..."
+                placeholder="Hasil Full Review dari AI akan muncul di sini. Anda bisa membaca keseluruhannya dan mengeditnya secara manual sebelum diterbitkan..."
               ></textarea>
             </div>
 

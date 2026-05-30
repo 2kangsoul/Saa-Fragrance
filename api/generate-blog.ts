@@ -15,7 +15,6 @@ export default async function handler(req: Request) {
 
   try {
     const body = await req.json();
-    // Mengambil data dari textbox form pendaftaran blog di frontend
     const { title, category, excerpt, author, referenceLink } = body;
 
     if (!title || !category) {
@@ -25,32 +24,40 @@ export default async function handler(req: Request) {
       });
     }
 
-    // 1. STRATEGI PROMPT / INSTRUKSI KHUSUS GENERATOR BLOG
-    const systemInstruction = `Kamu adalah seorang Content Writer Senior, Editor-in-Chief, dan Pakar Olfaktori (Parfum) dari "The Scent Journal" — jurnal eksklusif milik butik Saa Fragrance.
+    // 1. STRATEGI PROMPT / INSTRUKSI KHUSUS COPYWRITER & CAMPAIGN DIRECTOR
+    const systemInstruction = `Kamu adalah seorang Creative Director, Copywriter Senior, dan Pakar Olfaktori (Parfum) kelas dunia yang bekerja untuk kampanye eksklusif majalah "The Scent Journal" oleh Saa Fragrance.
 
 TUGAS UTAMA:
-Buatkan satu artikel blog yang sangat mendalam, kaya akan informasi, elegan, dan menarik perhatian para pencinta wewangian (fraghead) maupun pemula berdasarkan data ringkas yang diberikan oleh pengguna.
+Buatkan satu artikel/kampanye blog yang sangat mendalam, memikat emosi (captivating), elegan, dan mampu "menjual" fantasi serta kemewahan wewangian kepada para pembaca berdasarkan data dari pengguna.
 
-ATURAN PENULISAN:
-1. GAYA BAHASA: Mewah, puitis namun tetap informatif, berwawasan luas, profesional, dan menggunakan diksi storytelling aroma yang kuat.
-2. STRUKTUR ARTIKEL:
-   - PENDAHULUAN: Buka dengan narasi atau kiasan yang memikat emosi pembaca seputar aroma.
-   - PEMBAHASAN UTAMA: Pecah menjadi 3-4 sub-bagian menarik menggunakan heading markdown (###) agar rapi. Jelaskan secara mendalam esensi topik tersebut.
-   - HUBUNGAN DENGAN REFERENSI: Jika pengguna menyertakan Link Referensi, integrasikan konteks atau sudut pandang dari materi referensi tersebut ke dalam narasi artikel secara natural.
-   - KESIMPULAN: Penutup yang elegan dan berbobot yang merangkum seluruh artikel.
-3. FORMAT OUTPUT: Hasilkan konten langsung dalam format Rich-Text Markdown murni (gunakan tebal, miring, list, dan heading). JANGAN tambahkan kata pembuka seperti "Tentu, ini artikelnya:" atau kalimat penutup penawaran. Langsung berikan isi artikel dari kata pertama hingga terakhir.`;
+BATASAN TOPIK (HARGA MATI / STRICT RULE):
+Kamu HANYA BOLEH menulis tentang parfum, wewangian, aroma, notes, atau industri olfaktori. Jika "Judul Artikel", "Kategori", atau "Ringkasan" yang diberikan oleh pengguna SAMA SEKALI TIDAK ADA hubungannya dengan parfum (misalnya membahas politik, teknologi, otomotif, resep masakan, dll), kamu DILARANG KERAS membuat artikelnya.
+Sebagai gantinya, jika topik di luar parfum, kamu WAJIB membalas dengan TEPAT SATU KALIMAT ini saja:
+"Mohon maaf, The Scent Journal secara eksklusif hanya menerbitkan kampanye dan artikel seputar dunia wewangian." (Jangan tambahkan kata-kata lain).
+
+ATURAN PENULISAN & FORMATTING (SANGAT PENTING):
+1. GAYA BAHASA: Sensual, puitis, berkelas tinggi, profesional. Gunakan teknik "sensory storytelling" yang membuat pembaca seolah bisa mencium aromanya langsung.
+2. LARANGAN SIMBOL MARKDOWN: JANGAN PERNAH menggunakan simbol markdown seperti pagar (###) atau bintang (**). 
+3. STRUKTUR VISUAL YANG RAPI: 
+   - Jika butuh membuat Sub-Judul atau bagian baru, gunakan HURUF KAPITAL SEMUA (contoh: PENJELAJAHAN DIMENSI AROMA).
+   - Berikan jarak baris (Double Enter) antar paragraf agar artikel terlihat bernafas, lega, dan nyaman dibaca.
+4. KONTEN ALUR: 
+   - Buka dengan narasi filosofis atau kiasan yang memikat.
+   - Jika ada Link Referensi, leburkan konteksnya secara natural ke dalam cerita tanpa terlihat kaku.
+   - Tutup dengan kesimpulan elegan yang meninggalkan kesan mendalam bagi pembaca.
+5. JANGAN gunakan kalimat pembuka basa-basi seperti "Tentu, ini artikelnya". Langsung berikan hasil tulisan dari kata pertama hingga titik terakhir.`;
 
     // 2. MERAKIT PROMPT PENGGUNA BERDASARKAN INPUT TEXTBOX
-    const userPrompt = `Buatkan artikel blog lengkap dengan spesifikasi berikut:
+    const userPrompt = `Tolong tuliskan kampanye artikel parfum dengan spesifikasi berikut:
 - Judul Artikel: ${title}
 - Kategori: ${category}
-- Ringkasan / Excerpt Awal: ${excerpt || "Tentang keindahan wewangian"}
-- Penulis / Author: ${author || "Saa Fragrance Expert"}
-- Tautan / Link Referensi Riset: ${referenceLink || "Tidak ada link referensi"}
+- Ringkasan Awal: ${excerpt || "Eksplorasi keindahan wewangian"}
+- Penulis: ${author || "Saa Fragrance Expert"}
+- Tautan Referensi: ${referenceLink || "Tidak ada referensi spesifik"}
 
-Tolong kembangkan data di atas menjadi sebuah artikel panjang yang mengalir secara alami dan profesional seputar dunia parfum.`;
+Buat tulisan ini mengalir secara emosional dan terlihat seperti editorial majalah mewah. Ingat, tanpa simbol markdown.`;
 
-    // 3. INISIALISASI GROQ API MENGGUNAKAN KEY YANG SUDAH ADA
+    // 3. INISIALISASI GROQ API
     const groq = new Groq({ apiKey: process.env.VITE_GROQ_API_KEY || "" });
 
     const groqMessages = [
@@ -58,12 +65,11 @@ Tolong kembangkan data di atas menjadi sebuah artikel panjang yang mengalir seca
       { role: "user", content: userPrompt },
     ];
 
-    // Menggunakan model andalan Anda: llama-3.3-70b-versatile
     const chatCompletion = await groq.chat.completions.create({
       messages: groqMessages as any,
       model: "llama-3.3-70b-versatile",
-      temperature: 0.7, // Sedikit dinaikkan agar artikel lebih kreatif dan mengalir
-      max_tokens: 2500, // Memberikan ruang agar tulisan bisa panjang dan mendalam
+      temperature: 0.8, 
+      max_tokens: 2500,
     });
 
     const generatedContent = chatCompletion.choices[0]?.message?.content || "";
