@@ -7,6 +7,7 @@ interface UserData {
   email?: string;
   objectId: string; 
   userToken: string; 
+  role?: string; // <-- UBAH: Sekarang menggunakan role
 }
 
 interface AuthState {
@@ -31,9 +32,6 @@ export const useAuthStore = create<AuthState>()(
         if (!currentUser?.userToken || !currentUser?.objectId) return;
 
         try {
-          // =====================================================================
-          // INI ADALAH SATU-SATUNYA CONSOLE LOG YANG TERSISA (GRUP RAPI)
-          // =====================================================================
           console.groupCollapsed(`🔐 [AuthStore] Sesi Aktif: ${currentUser.name || 'User'}`);
           console.log(`🚀 Menembak API ID: ${currentUser.objectId}`);
           console.log(`🔑 Token: ${currentUser.userToken}`);
@@ -48,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
               name: response.data.name || currentUser.name,
               email: response.data.email,
               objectId: response.data.objectId,
+              role: response.data.role || 'user', // <-- UBAH: Mengambil data role
             }
           });
 
@@ -66,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user ? {
           userToken: state.user.userToken,
           objectId: state.user.objectId, 
+          role: state.user.role, // <-- UBAH: Menyimpan role ke storage
         } : null,
       }),
     }

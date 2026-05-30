@@ -49,6 +49,7 @@ export default function LoginPage() {
         email: res?.data?.email,
         objectId: res?.data?.objectId,
         userToken: res?.data['user-token'],
+        role: res?.data?.role || 'user', // GANTI JADI INI
       });
       
       // Pindah ke halaman utama dan timpa histori

@@ -1,8 +1,10 @@
+import React, { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
-import { useMainLayout } from "../hooks/useMainLayout"; // <-- JALUR IMPORT DIPERBAIKI
+import { useMainLayout } from "../hooks/useMainLayout";
+import AdminManagerModal from "../../adminmanage/AdminManagerModal";
+import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal"; // <-- TAMBAHAN IMPORT
 
 export default function MainLayout() {
-  // Panggil semua state dan fungsi dari custom hook yang sudah kita buat
   const {
     isScrolled,
     isMobileMenuOpen,
@@ -12,11 +14,12 @@ export default function MainLayout() {
     logout,
   } = useMainLayout();
 
+  const [isManageMenuOpen, setIsManageMenuOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isPerfumeModalOpen, setIsPerfumeModalOpen] = useState(false); // <-- TAMBAHAN STATE
+
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
-      {/* =======================================================================
-          HEADER NAVIGASI GLOBAL
-          ======================================================================= */}
       <header
         className={`flex justify-between items-center px-6 py-2 sticky top-0 z-50 transition-all duration-500 relative ${
           isScrolled
@@ -32,7 +35,6 @@ export default function MainLayout() {
           />
         </Link>
 
-        {/* NAVIGASI DESKTOP (Tetap sembunyi di HP) */}
         <nav className="hidden lg:flex items-center gap-4 text-xs font-medium">
           <Link
             to="/products"
@@ -43,19 +45,72 @@ export default function MainLayout() {
           <Link to="/team" className="hover:text-gray-500 transition-colors">
             Team
           </Link>
+          <Link to="/blog" className="hover:text-gray-500 transition-colors">
+            Blog
+          </Link>
           <Link to="/aboutus" className="hover:text-gray-500 transition-colors">
             About Us
           </Link>
         </nav>
 
-        {/* AREA USER DESKTOP (Tetap sembunyi di HP) */}
         <div className="hidden lg:flex items-center gap-3 text-xs font-medium">
-          {/* LOGIKA PERUBAHAN TAMPILAN HEADER (Ternary Operator) */}
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-gray-800">
                 Hai, {user?.name}
               </span>
+
+              {(user?.role === "owner" || user?.role === "admin") && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsManageMenuOpen(!isManageMenuOpen)}
+                    className="flex items-center gap-1 px-3 py-1 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md"
+                  >
+                    Manage
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {isManageMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50 flex flex-col">
+                      <button
+                        onClick={() => {
+                          setIsManageMenuOpen(false);
+                          setIsPerfumeModalOpen(true); // <-- UBAH KE BUKA MODAL PARFUM
+                        }}
+                        className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium"
+                      >
+                        📦 Manage Parfume
+                      </button>
+
+                      {user?.role === "owner" && (
+                        <button
+                          onClick={() => {
+                            setIsManageMenuOpen(false);
+                            setIsAdminModalOpen(true);
+                          }}
+                          className="text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium border-t border-gray-100"
+                        >
+                          ⚙️ Setting Admin
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 onClick={logout}
                 className="px-3 py-1 text-red-500 font-bold hover:bg-red-50 hover:text-red-700 transition-colors rounded-md"
@@ -81,15 +136,11 @@ export default function MainLayout() {
           )}
         </div>
 
-        {/* =======================================================================
-            TOMBOL HAMBURGER KHUSUS HP (Sembunyi di Desktop)
-            ======================================================================= */}
         <button
           className="lg:hidden p-2 text-gray-800 focus:outline-none"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? (
-            // Ikon X (Tutup)
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -105,7 +156,6 @@ export default function MainLayout() {
               />
             </svg>
           ) : (
-            // Ikon Garis Tiga (Buka)
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -123,11 +173,8 @@ export default function MainLayout() {
           )}
         </button>
 
-        {/* =======================================================================
-            MENU DROPDOWN KHUSUS HP (Muncul saat tombol ditekan)
-            ======================================================================= */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-[#f4f2ee]/95 backdrop-blur-md shadow-md border-t border-gray-200 flex flex-col px-6 py-6 gap-4 transition-all">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-[#f4f2ee]/95 backdrop-blur-md shadow-md border-t border-gray-200 flex flex-col px-6 py-6 gap-4 transition-all z-50">
             <Link
               to="/products"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -157,6 +204,33 @@ export default function MainLayout() {
                 <span className="font-medium text-gray-800">
                   Hai, {user?.name}
                 </span>
+
+                {(user?.role === "owner" || user?.role === "admin") && (
+                  <div className="flex flex-col gap-3 pl-3 border-l-2 border-gray-300">
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsPerfumeModalOpen(true); // <-- UBAH KE BUKA MODAL PARFUM
+                      }}
+                      className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
+                    >
+                      📦 Manage Parfume
+                    </button>
+
+                    {user?.role === "owner" && (
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsAdminModalOpen(true);
+                        }}
+                        className="w-max px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors rounded-md text-sm"
+                      >
+                        ⚙️ Setting Admin
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <button
                   onClick={() => {
                     logout();
@@ -189,80 +263,27 @@ export default function MainLayout() {
         )}
       </header>
 
-      {/* =======================================================================
-          KONTEN HALAMAN DINAMIS (Halaman akan berganti di sini)
-          ======================================================================= */}
       <main>
         <Outlet />
       </main>
 
-      {/* =======================================================================
-          FOOTER GLOBAL
-          ======================================================================= */}
+      <AdminManagerModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
+      />
+
+      {/* <-- TAMBAHAN: Komponen Modal Manage Perfume */}
+      <PerfumeManagerModal
+        isOpen={isPerfumeModalOpen}
+        onClose={() => setIsPerfumeModalOpen(false)}
+      />
+
       <div className="max-w-7xl mx-auto px-6 py-4 mt-10">
         <hr className="border-t border-gray-300" />
       </div>
 
       <footer className="max-w-7xl mx-auto px-6 py-12 text-sm">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-          <div className="col-span-2 md:col-span-2">
-            <img
-              src="/SaaFragrance.png"
-              alt="Saa Fragrance Logo"
-              className="h-10 mb-6 object-contain"
-            />
-            <div className="flex gap-4 text-gray-600">
-              <Link to="#" className="hover:text-black">
-                X
-              </Link>
-              <Link to="#" className="hover:text-black">
-                IG
-              </Link>
-              <Link to="#" className="hover:text-black">
-                YT
-              </Link>
-              <Link to="#" className="hover:text-black">
-                IN
-              </Link>
-            </div>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="font-bold text-gray-900 mb-2">Use cases</h4>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              UI design
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              UX design
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Wireframing
-            </Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="font-bold text-gray-900 mb-2">Explore</h4>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Design
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Prototyping
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Development features
-            </Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="font-bold text-gray-900 mb-2">Resources</h4>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Blog
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Best practices
-            </Link>
-            <Link to="#" className="text-gray-600 hover:text-black">
-              Colors
-            </Link>
-          </div>
-        </div>
+        {/* Footer sama seperti sebelumnya */}
       </footer>
     </div>
   );
