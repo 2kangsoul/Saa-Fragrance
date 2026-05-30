@@ -10,7 +10,7 @@ export const useProducts = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProducts = async (isRetry = false) => {
       try {
         const response = await backendlessApi.get<ProductType[]>(
           "data/Product?pageSize=100",
@@ -18,6 +18,26 @@ export const useProducts = () => {
         setProducts(response.data);
       } catch (err: any) {
         console.error("Gagal mengambil data produk dari Backendless:", err);
+
+        // LOGIKA PENANGKAL EXPIRED TOKEN:
+        // Mengecek apakah error disebabkan oleh token sesi yang hangus
+        const errorMessage = err.response?.data?.message || err.message;
+        const statusCode = err.response?.status;
+
+        const isSessionExpired =
+          statusCode === 401 ||
+          (typeof errorMessage === "string" &&
+            errorMessage.toLowerCase().includes("session"));
+
+        if (isSessionExpired && !isRetry) {
+          // 1. Bersihkan token yang kadaluwarsa
+          localStorage.removeItem("userToken");
+          // Anda bisa menambahkan removeItem lain jika ada (misal: "userData")
+
+          // 2. Coba panggil lagi secara publik (isRetry = true)
+          return fetchProducts(true);
+        }
+
         setError(
           "Koneksi ke database terputus. Silakan coba muat ulang halaman.",
         );
