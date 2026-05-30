@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import backendlessApi from "../../config/api"
+import backendlessApi from "../../config/api";
 
 interface BlogManagerModalProps {
   isOpen: boolean;
@@ -77,7 +77,6 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
     const loadingToast = toast.loading("Menyimpan ke database...");
 
     try {
-      // Tarik format tanggal hari ini untuk kolom publishDate
       const currentDate = new Date().toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
@@ -121,7 +120,7 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      {/* Container Modal - Dibuat lebar (max-w-6xl) karena butuh ruang menulis */}
+      {/* Container Modal */}
       <div 
         className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]"
         onClick={(e) => e.stopPropagation()}
@@ -142,11 +141,11 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-hidden p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
             
             {/* KOLOM KIRI: Input Data Dasar */}
-            <div className="lg:col-span-4 space-y-4">
+            <div className="lg:col-span-4 space-y-4 overflow-y-auto pr-2 pb-10">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Judul Artikel *</label>
                 <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="Contoh: Sejarah Parfum Niche" />
@@ -183,7 +182,6 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
                 <input type="text" name="referenceLink" value={formData.referenceLink} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="URL artikel/web untuk bahan bacaan AI" />
               </div>
 
-              {/* TOMBOL SAKTI AI */}
               <button
                 type="button"
                 onClick={handleGenerateAI}
@@ -203,20 +201,50 @@ export default function BlogManagerModal({ isOpen, onClose }: BlogManagerModalPr
               </button>
             </div>
 
-            {/* KOLOM KANAN: Textarea Hasil (Sekarang bernama FULL REVIEW) */}
-            <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Full Review</span>
+            {/* KOLOM KANAN: FULL REVIEW (Gambar + Textarea) */}
+            <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden bg-white">
+              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center shrink-0">
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Full Review (Preview)</span>
               </div>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
-                className="flex-1 w-full p-4 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none"
-                placeholder="Hasil Full Review dari AI akan muncul di sini. Anda bisa membaca keseluruhannya dan mengeditnya secara manual sebelum diterbitkan..."
-              ></textarea>
-            </div>
+              
+              {/* Area Dalam yang bisa di-scroll */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                
+                {/* PREVIEW GAMBAR COVER */}
+                {formData.imageUrl ? (
+                  <div className="w-full h-48 md:h-72 rounded-xl overflow-hidden shadow-sm shrink-0 relative group border border-gray-100 bg-gray-50">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Cover Preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://via.placeholder.com/800x400?text=Gambar+Tidak+Valid/Rusak";
+                      }}
+                    />
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                      Cover Image
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-32 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 shrink-0 bg-gray-50/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-medium">Preview gambar cover akan muncul di sini...</span>
+                  </div>
+                )}
 
+                {/* TEXTAREA EDITOR */}
+                <textarea
+                  name="content"
+                  value={formData.content}
+                  onChange={handleChange}
+                  className="w-full min-h-[300px] flex-1 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none bg-transparent"
+                  placeholder="Hasil Full Review dari AI akan muncul di sini. Anda bisa membaca keseluruhannya dan mengeditnya secara manual sebelum diterbitkan..."
+                ></textarea>
+              </div>
+
+            </div>
           </div>
         </div>
 
