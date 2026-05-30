@@ -53,8 +53,13 @@ export const useAuthStore = create<AuthState>()(
           console.log(`💾 State di RAM tersimpan: ${response.data.name}`);
           console.groupEnd();
 
-        } catch (error) {
+        } catch (error: any) {
           console.error("❌ [AuthStore] Gagal mengambil data:", error);
+          
+          // <-- PERBAIKAN: Jika token expired/mati (401 Unauthorized), bersihkan sesi
+          if (error.response?.status === 401 || error.response?.status === 400) {
+            get().logout();
+          }
         }
       }
     }),
