@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useMainLayout } from "../hooks/useMainLayout";
 import AdminManagerModal from "../../adminmanage/AdminManagerModal";
-import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal"; // <-- TAMBAHAN IMPORT
+import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal";
+import BlogManagerModal from "../../blogmanage/BlogManagerModal" // <-- TAMBAHAN IMPORT BLOG
 
 export default function MainLayout() {
   const {
@@ -16,7 +17,8 @@ export default function MainLayout() {
 
   const [isManageMenuOpen, setIsManageMenuOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [isPerfumeModalOpen, setIsPerfumeModalOpen] = useState(false); // <-- TAMBAHAN STATE
+  const [isPerfumeModalOpen, setIsPerfumeModalOpen] = useState(false);
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false); // <-- TAMBAHAN STATE BLOG
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
@@ -88,11 +90,22 @@ export default function MainLayout() {
                       <button
                         onClick={() => {
                           setIsManageMenuOpen(false);
-                          setIsPerfumeModalOpen(true); // <-- UBAH KE BUKA MODAL PARFUM
+                          setIsPerfumeModalOpen(true);
                         }}
                         className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium"
                       >
                         📦 Manage Parfume
+                      </button>
+                      
+                      {/* <-- TAMBAHAN TOMBOL MANAGE BLOG (DESKTOP) --> */}
+                      <button
+                        onClick={() => {
+                          setIsManageMenuOpen(false);
+                          setIsBlogModalOpen(true);
+                        }}
+                        className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium border-t border-gray-100"
+                      >
+                        ✍️ Manage Blog
                       </button>
 
                       {user?.role === "owner" && (
@@ -210,11 +223,22 @@ export default function MainLayout() {
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        setIsPerfumeModalOpen(true); // <-- UBAH KE BUKA MODAL PARFUM
+                        setIsPerfumeModalOpen(true); 
                       }}
                       className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
                     >
                       📦 Manage Parfume
+                    </button>
+                    
+                    {/* <-- TAMBAHAN TOMBOL MANAGE BLOG (MOBILE) --> */}
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsBlogModalOpen(true); 
+                      }}
+                      className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
+                    >
+                      ✍️ Manage Blog
                     </button>
 
                     {user?.role === "owner" && (
@@ -272,10 +296,15 @@ export default function MainLayout() {
         onClose={() => setIsAdminModalOpen(false)}
       />
 
-      {/* <-- TAMBAHAN: Komponen Modal Manage Perfume */}
       <PerfumeManagerModal
         isOpen={isPerfumeModalOpen}
         onClose={() => setIsPerfumeModalOpen(false)}
+      />
+
+      {/* <-- TAMBAHAN: Komponen Modal Manage Blog --> */}
+      <BlogManagerModal
+        isOpen={isBlogModalOpen}
+        onClose={() => setIsBlogModalOpen(false)}
       />
 
       <div className="max-w-7xl mx-auto px-6 py-4 mt-10">

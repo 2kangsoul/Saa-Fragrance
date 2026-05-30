@@ -1,56 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import backendlessApi from "../../../config/api"; // Sesuaikan jumlah titik (../) dengan struktur folder Anda
 import type { BlogPost } from "../types/blogTypes";
-
-// Dummy data untuk artikel blog
-const initialBlogs: BlogPost[] = [
-  {
-    id: 1,
-    title: "panduan memilih parfum niche untuk pemula",
-    excerpt:
-      "mengenal lebih jauh dunia parfum niche dan bagaimana menemukan aroma yang paling merepresentasikan karakter unik anda tanpa harus blind buy.",
-    author: "alsa fragrance",
-    date: "28 mei 2026",
-    category: "guide",
-    imageUrl: "/NichePerfume.png",
-  },
-  {
-    id: 2,
-    title: "Mengenal Istilah Sillage, Projection, dan Longevity (SPL)",
-    excerpt:
-      "Sering mendengar istilah SPL beast mode? Mari bedah satu per satu apa arti sebenarnya dari ketiga pilar performa parfum ini.",
-    author: "Tim Edukasi Saa",
-    date: "25 Mei 2026",
-    category: "Edukasi",
-    imageUrl:
-      "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    title: "Top 5 Parfum Designer Paling Laris di Tahun Ini",
-    excerpt:
-      "Dari paduan aroma floral yang elegan hingga woody yang maskulin, ini dia deretan mahakarya desainer yang wajib masuk wishlist Anda.",
-    author: "Kolektor Parfum",
-    date: "20 Mei 2026",
-    category: "Rekomendasi",
-    imageUrl:
-      "https://images.unsplash.com/photo-1615486171448-4fbcaab2bcab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  },
-];
 
 export const useBlog = () => {
   const [activeCategory, setActiveCategory] = useState("Semua");
-  const categories = ["Semua", "Guide", "Edukasi", "Rekomendasi"];
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fitur Filtering Opsional (Sesuai kriteria tugas)
+  // Kategori disesuaikan persis dengan pilihan di BlogManagerModal
+  const categories = ["Semua", "Niche", "Designer", "Tips", "Review"];
+
+  // Fungsi untuk menarik data asli dari Backendless
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      try {
+        // Mengambil data dari tabel Blogs, diurutkan dari yang terbaru (opsional: tambah sortBy)
+        const res = await backendlessApi.get("data/Blogs", {
+          params: {
+            sortBy: "created desc"
+          }
+        });
+        
+        // Memetakan (Mapping) data Backendless agar sesuai dengan tipe BlogPost Anda
+        const fetchedBlogs = res.data.map((item: any) => ({
+          id: item.objectId, // Backendless menggunakan objectId, kita ubah jadi id
+          title: item.title,
+          excerpt: item.excerpt,
+          author: item.author,
+          date: item.publishDate, // Tarik publishDate dari DB, ubah namanya jadi date untuk UI
+          category: item.category,
+          imageUrl: item.imageUrl,
+        }));
+
+        setBlogs(fetchedBlogs);
+      } catch (error) {
+        console.error("Gagal mengambil data blog:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  // Fitur Filtering Tetap Sama
   const filteredBlogs =
     activeCategory === "Semua"
-      ? initialBlogs
-      : initialBlogs.filter((blog) => blog.category === activeCategory);
+      ? blogs
+      : blogs.filter((blog) => blog.category === activeCategory);
 
   return {
     activeCategory,
     setActiveCategory,
     categories,
     filteredBlogs,
+    isLoading, // Tambahan fitur loading state jika Anda butuh menampilkan animasi muter-muter
   };
 };
