@@ -65,7 +65,6 @@ export default function BlogManagerModal({
         throw new Error(data.message || "Gagal menghubungi AI");
       }
 
-      // Memasukkan hasil tulisan AI ke Textarea Content
       setFormData((prev) => ({ ...prev, content: data.content }));
       toast.success("Artikel berhasil ditulis oleh AI!", { id: loadingToast });
     } catch (error: any) {
@@ -100,27 +99,26 @@ export default function BlogManagerModal({
         excerpt: formData.excerpt,
         author: formData.author,
         imageUrl: formData.imageUrl,
-        imageUrl2: formData.imageUrl2, // Tambahan
-        imageUrl3: formData.imageUrl3, // Tambahan
+        imageUrl2: formData.imageUrl2,
+        imageUrl3: formData.imageUrl3,
         content: formData.content,
         publishDate: currentDate,
       });
 
-      // Jangan lupa update bagian reset form di bawahnya:
       setFormData({
         title: "",
         category: "Niche",
         excerpt: "",
         author: "",
         imageUrl: "",
-        imageUrl2: "", // Reset
-        imageUrl3: "", // Reset
+        imageUrl2: "",
+        imageUrl3: "",
         referenceLink: "",
         content: "",
       });
 
-      // Tutup modal
       onClose();
+      toast.success("Artikel berhasil diterbitkan!", { id: loadingToast });
     } catch (error: any) {
       console.error("Database Error:", error);
       toast.error("Gagal menyimpan ke database.", { id: loadingToast });
@@ -133,7 +131,6 @@ export default function BlogManagerModal({
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      {/* Container Modal */}
       <div
         className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]"
         onClick={(e) => e.stopPropagation()}
@@ -233,10 +230,9 @@ export default function BlogManagerModal({
                 />
               </div>
 
-              {/* Gambar 1 (Cover Utama) */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  URL Gambar Cover *
+                  URL Gambar Cover (Utama) *
                 </label>
                 <input
                   type="text"
@@ -244,11 +240,10 @@ export default function BlogManagerModal({
                   value={formData.imageUrl}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="https://... (Cover Utama)"
+                  placeholder="https://..."
                 />
               </div>
 
-              {/* Gambar 2 */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   URL Gambar 2 (Opsional)
@@ -263,7 +258,6 @@ export default function BlogManagerModal({
                 />
               </div>
 
-              {/* Gambar 3 */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   URL Gambar 3 (Opsional)
@@ -299,9 +293,7 @@ export default function BlogManagerModal({
                 className="w-full mt-4 bg-gradient-to-r from-[#F58427] to-orange-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
-                  <span className="animate-pulse">
-                    ✨ AI Sedang Berpikir...
-                  </span>
+                  <span className="animate-pulse">✨ AI Sedang Berpikir...</span>
                 ) : (
                   <>
                     <svg
@@ -322,52 +314,63 @@ export default function BlogManagerModal({
               </button>
             </div>
 
-            {/* KOLOM KANAN: FULL REVIEW (Gambar + Textarea) */}
+            {/* KOLOM KANAN: FULL REVIEW (Preview Gambar & Text) */}
             <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden bg-white">
-              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center shrink-0">
+              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 shrink-0">
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Full Review (Preview)
                 </span>
               </div>
 
-              {/* Area Dalam yang bisa di-scroll */}
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-                {/* PREVIEW GAMBAR COVER */}
-                {formData.imageUrl ? (
-                  <div className="w-full h-48 md:h-72 rounded-xl overflow-hidden shadow-sm shrink-0 relative group border border-gray-100 bg-gray-50">
-                    <img
-                      src={formData.imageUrl}
-                      alt="Cover Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://via.placeholder.com/800x400?text=Gambar+Tidak+Valid/Rusak";
-                      }}
-                    />
-                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
-                      Cover Image
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-32 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 shrink-0 bg-gray-50/50">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 mb-2 opacity-50"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+                
+                {/* GRID PREVIEW GAMBAR (MENAMPILKAN HINGGA 3 GAMBAR) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+                  {/* Preview Gambar 1 */}
+                  {formData.imageUrl && (
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
+                      <img
+                        src={formData.imageUrl}
+                        className="w-full h-full object-cover"
+                        alt="Preview 1"
+                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+1")}
                       />
-                    </svg>
-                    <span className="text-xs font-medium">
-                      Preview gambar cover akan muncul di sini...
-                    </span>
-                  </div>
+                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Cover</div>
+                    </div>
+                  )}
+
+                  {/* Preview Gambar 2 */}
+                  {formData.imageUrl2 && (
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
+                      <img
+                        src={formData.imageUrl2}
+                        className="w-full h-full object-cover"
+                        alt="Preview 2"
+                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+2")}
+                      />
+                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 2</div>
+                    </div>
+                  )}
+
+                  {/* Preview Gambar 3 */}
+                  {formData.imageUrl3 && (
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
+                      <img
+                        src={formData.imageUrl3}
+                        className="w-full h-full object-cover"
+                        alt="Preview 3"
+                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+3")}
+                      />
+                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 3</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Jika Tidak Ada Gambar Sama Sekali */}
+                {!formData.imageUrl && !formData.imageUrl2 && !formData.imageUrl3 && (
+                   <div className="w-full h-24 rounded-xl border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-xs italic">
+                     Belum ada URL gambar yang dimasukkan...
+                   </div>
                 )}
 
                 {/* TEXTAREA EDITOR */}
@@ -375,15 +378,15 @@ export default function BlogManagerModal({
                   name="content"
                   value={formData.content}
                   onChange={handleChange}
-                  className="w-full min-h-[300px] flex-1 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none bg-transparent"
-                  placeholder="Hasil Full Review dari AI akan muncul di sini. Anda bisa membaca keseluruhannya dan mengeditnya secara manual sebelum diterbitkan..."
+                  className="w-full min-h-[400px] flex-1 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none bg-transparent font-serif"
+                  placeholder="Hasil AI akan muncul di sini. Anda bisa mengeditnya..."
                 ></textarea>
               </div>
             </div>
           </div>
         </div>
 
-        {/* FOOTER: Tombol Simpan */}
+        {/* FOOTER */}
         <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end shrink-0">
           <button
             onClick={handleSaveBlog}
