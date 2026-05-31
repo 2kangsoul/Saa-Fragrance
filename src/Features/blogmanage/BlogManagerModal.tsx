@@ -15,8 +15,9 @@ export default function BlogManagerModal({
   const [pendingPage, setPendingPage] = useState(1);
   const [publishedPage, setPublishedPage] = useState(1);
 
-  // STATE UNTUK OTORISASI ROLE
+  // STATE UNTUK OTORISASI ROLE & STATUS
   const [userRole, setUserRole] = useState<string>("user");
+  const [isEditingPending, setIsEditingPending] = useState(false); // Deteksi jika sedang me-review artikel pending
 
   // STATE UNTUK DATA ASLI DARI BACKENDLESS
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -61,17 +62,15 @@ export default function BlogManagerModal({
     }
   };
 
-  // Otomatis tarik data & deteksi role saat modal dibuka
   useEffect(() => {
     if (isOpen) {
       fetchBlogs();
-      // Reset tab ke AI setiap kali modal dibuka agar aman
       setActiveTab("ai"); 
 
       // PENDETEKSI ROLE CERDAS DARI LOCAL STORAGE
       try {
         const userStr = localStorage.getItem("user");
-        const authStr = localStorage.getItem("auth-storage"); // Jika pakai Zustand persist
+        const authStr = localStorage.getItem("auth-storage"); 
 
         if (userStr) {
           setUserRole(JSON.parse(userStr)?.role || "user");
@@ -86,14 +85,18 @@ export default function BlogManagerModal({
 
   const isAdminOrOwner = userRole === "owner" || userRole === "admin";
 
-  // LOGIKA PAGINASI DATA ASLI
-  const pendingBlogs: any[] = []; 
-  const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1; 
-  
-  const totalPublishedPages = Math.ceil(blogs.length / 4) || 1;
-  const currentPublished = blogs.slice((publishedPage - 1) * 4, publishedPage * 4);
+  // LOGIKA PEMISAHAN DATA (PENDING VS PUBLISHED)
+  const pendingBlogs = blogs.filter((b) => b.publishDate === "PENDING");
+  const publishedBlogs = blogs.filter((b) => b.publishDate !== "PENDING");
 
-  // 2. FUNGSI EDIT DATA
+  // LOGIKA PAGINASI
+  const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1; 
+  const currentPending = pendingBlogs.slice((pendingPage - 1) * 5, pendingPage * 5);
+  
+  const totalPublishedPages = Math.ceil(publishedBlogs.length / 4) || 1;
+  const currentPublished = publishedBlogs.slice((publishedPage - 1) * 4, publishedPage * 4);
+
+  // 2. FUNGSI EDIT / FULL REVIEW DATA
   const handleEditClick = (blog: any) => {
     setFormData({
       title: blog.title || "",
@@ -107,14 +110,15 @@ export default function BlogManagerModal({
       content: blog.content || "",
     });
     setEditId(blog.objectId); 
+    setIsEditingPending(blog.publishDate === "PENDING"); // Tandai jika ini artikel yang butuh Approval
     setActiveTab("ai"); 
   };
 
   // 3. FUNGSI DELETE DATA
   const handleDeleteClick = async (objectId: string) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus artikel ini secara permanen?")) return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus/menolak artikel ini secara permanen?")) return;
     
-    const loadingToast = toast.loading("Menghapus artikel...");
+    const loadingToast = toast.loading("Memproses...");
     try {
       await backendlessApi.delete(`data/Blogs/${objectId}`);
       toast.success("Artikel berhasil dihapus!", { id: loadingToast });
@@ -182,7 +186,7 @@ export default function BlogManagerModal({
         year: "numeric",
       });
 
-      const payload = {
+      const payload: any = {
         title: formData.title,
         category: formData.category,
         excerpt: formData.excerpt,
@@ -191,13 +195,18 @@ export default function BlogManagerModal({
         imageUrl2: formData.imageUrl2,
         imageUrl3: formData.imageUrl3,
         content: formData.content,
-        ...(editId ? {} : { publishDate: currentDate }), 
       };
 
       if (editId) {
+        // Jika mode edit dan artikel asalnya PENDING, berikan tanggal hari ini (Approve!)
+        if (isEditingPending && isAdminOrOwner) {
+          payload.publishDate = currentDate;
+        }
         await backendlessApi.put(`data/Blogs/${editId}`, payload);
-        toast.success("Artikel berhasil diperbarui!", { id: loadingToast });
+        toast.success(isEditingPending ? "Artikel berhasil di-Approve & Diterbitkan!" : "Artikel berhasil diperbarui!", { id: loadingToast });
       } else {
+        // Jika buat baru: Jika admin langsung terbit, jika user jadi PENDING
+        payload.publishDate = isAdminOrOwner ? currentDate : "PENDING";
         await backendlessApi.post("data/Blogs", payload);
         toast.success(
           isAdminOrOwner 
@@ -213,12 +222,10 @@ export default function BlogManagerModal({
         imageUrl: "", imageUrl2: "", imageUrl3: "", referenceLink: "", content: "",
       });
       setEditId(null);
+      setIsEditingPending(false);
       
       fetchBlogs();
-      // Hanya alihkan ke tab manage jika user adalah admin/owner
-      if (isAdminOrOwner) {
-        setActiveTab("manage");
-      }
+      if (isAdminOrOwner) setActiveTab("manage");
       
     } catch (error: any) {
       console.error("Database Error:", error);
@@ -230,6 +237,7 @@ export default function BlogManagerModal({
 
   const handleCancelEdit = () => {
     setEditId(null);
+    setIsEditingPending(false);
     setFormData({
       title: "", category: "Niche", excerpt: "", author: "",
       imageUrl: "", imageUrl2: "", imageUrl3: "", referenceLink: "", content: "",
@@ -258,7 +266,9 @@ export default function BlogManagerModal({
           <div>
             <h2 className="text-xl font-bold text-gray-900">
               {activeTab === "ai" 
-                ? (editId ? "✏️ Mode Edit Artikel" : "✍️ Pembuat Artikel Blog AI") 
+                ? (editId 
+                    ? (isEditingPending ? "🔍 Review & Approve Artikel" : "✏️ Mode Edit Artikel") 
+                    : "✍️ Pembuat Artikel Blog AI") 
                 : "⚙️ Dashboard Admin Blog"}
             </h2>
             <p className="text-xs text-gray-500 mt-1">
@@ -278,7 +288,6 @@ export default function BlogManagerModal({
               AI Generator
             </button>
             
-            {/* TAB MANAGE HANYA MUNCUL UNTUK ADMIN DAN OWNER */}
             {isAdminOrOwner && (
               <button
                 onClick={() => setActiveTab("manage")}
@@ -379,7 +388,7 @@ export default function BlogManagerModal({
                 {isSaving 
                   ? "Menyimpan..." 
                   : (editId 
-                      ? "Perbarui Artikel" 
+                      ? (isEditingPending ? "Terbitkan Artikel (Approve)" : "Perbarui Artikel") 
                       : (isAdminOrOwner ? "Terbitkan Artikel" : "Ajukan Artikel (Review)")
                     )
                 }
@@ -399,16 +408,21 @@ export default function BlogManagerModal({
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-                  {pendingBlogs.length > 0 ? (
-                    pendingBlogs.map((item) => (
+                  {currentPending.length > 0 ? (
+                    currentPending.map((item) => (
                       <div key={item.objectId} className="p-4 border border-gray-100 rounded-lg flex justify-between items-center shadow-sm hover:border-red-300 transition-colors">
                         <div>
                           <p className="text-sm font-bold text-gray-800 mb-1">{item.title}</p>
                           <p className="text-[10px] text-gray-500 font-medium">Oleh: {item.author || "User"}</p>
                         </div>
-                        <button className="px-4 py-2 bg-[#800000] text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-900 transition-colors shadow-sm">
-                          Full Review
-                        </button>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleEditClick(item)} className="px-4 py-2 bg-[#800000] text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-900 transition-colors shadow-sm">
+                            Full Review
+                          </button>
+                          <button onClick={() => handleDeleteClick(item.objectId)} className="px-4 py-2 bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-200 transition-colors shadow-sm">
+                            Tolak
+                          </button>
+                        </div>
                       </div>
                     ))
                   ) : (
