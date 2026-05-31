@@ -1,4 +1,3 @@
-import React from "react";
 import type { BlogPost } from "../types/blogTypes"; 
 
 interface BlogReadModalProps {
@@ -32,6 +31,33 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
   const textPart2 = contentStr.substring(safePart1End, safePart2End);
   const textPart3 = contentStr.substring(safePart2End);
   // -----------------------------
+
+  // --- LOGIKA PEMBEDA UKURAN TEKS (BARU) ---
+  const formatContent = (text: string) => {
+    return text.split("\n").map((line, i) => {
+      // Jika baris kosong (enter), buat jarak spasi
+      if (!line.trim()) return <span key={i} className="block h-4"></span>;
+      
+      // Deteksi jika baris ini adalah sub-judul (semua huruf KAPITAL)
+      const isHeading = line === line.toUpperCase() && /[A-Z]/.test(line);
+      
+      if (isHeading) {
+        // KOTAK BIRU: Diperbesar sedikit dan ditebalkan
+        return (
+          <span key={i} className="block text-lg md:text-xl font-bold text-gray-900 font-sans mt-8 mb-2">
+            {line}
+          </span>
+        );
+      }
+      
+      // KOTAK KUNING: Diperkecil sedikit (teks paragraf normal)
+      return (
+        <span key={i} className="block text-sm md:text-base text-gray-800 leading-loose mb-2">
+          {line}
+        </span>
+      );
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-8">
@@ -79,8 +105,8 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
             </div>
 
             {/* 2. TEKS BAGIAN 1 */}
-            <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
-              {textPart1}
+            <div className="font-serif">
+              {formatContent(textPart1)}
             </div>
 
             {/* 3. GAMBAR KEDUA (Diperkecil / Lebar 70% di tengah) */}
@@ -95,8 +121,8 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
             )}
 
             {/* 4. TEKS BAGIAN 2 */}
-            <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
-              {textPart2}
+            <div className="font-serif">
+              {formatContent(textPart2)}
             </div>
 
             {/* 5. GAMBAR KETIGA (Diperkecil / Lebar 70% di tengah) */}
@@ -111,8 +137,8 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
             )}
 
             {/* 6. TEKS BAGIAN 3 (AKHIR) */}
-            <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
-              {textPart3}
+            <div className="font-serif">
+              {formatContent(textPart3)}
             </div>
 
           </div>

@@ -30,22 +30,20 @@ export default async function handler(req: Request) {
 TUGAS UTAMA:
 Buatkan satu artikel/kampanye blog yang sangat mendalam, memikat emosi (captivating), elegan, dan mampu "menjual" fantasi serta kemewahan wewangian kepada para pembaca berdasarkan data dari pengguna.
 
-BATASAN TOPIK (HARGA MATI / STRICT RULE):
-Kamu HANYA BOLEH menulis tentang parfum, wewangian, aroma, notes, atau industri olfaktori. Jika "Judul Artikel", "Kategori", atau "Ringkasan" yang diberikan oleh pengguna SAMA SEKALI TIDAK ADA hubungannya dengan parfum (misalnya membahas politik, teknologi, otomotif, resep masakan, dll), kamu DILARANG KERAS membuat artikelnya.
-Sebagai gantinya, jika topik di luar parfum, kamu WAJIB membalas dengan TEPAT SATU KALIMAT ini saja:
-"Mohon maaf, The Scent Journal secara eksklusif hanya menerbitkan kampanye dan artikel seputar dunia wewangian." (Jangan tambahkan kata-kata lain).
+GAYA BAHASA (PROFESIONAL NAMUN LUWES):
+Ingat, "profesional" BUKAN berarti kaku, membosankan, atau seperti robot/buku teks. Gunakan bahasa yang luwes, mengalir, sensual, puitis, dan berkelas tinggi. Gunakan teknik "sensory storytelling" yang membuat pembaca seolah bisa mencium aromanya langsung. Jadikan tulisan ini seperti editorial di majalah Vogue atau GQ.
 
-ATURAN PENULISAN & FORMATTING (SANGAT PENTING):
-1. GAYA BAHASA: Sensual, puitis, berkelas tinggi, profesional. Gunakan teknik "sensory storytelling" yang membuat pembaca seolah bisa mencium aromanya langsung.
-2. LARANGAN SIMBOL MARKDOWN: JANGAN PERNAH menggunakan simbol markdown seperti pagar (###) atau bintang (**). 
-3. LARANGAN MENAMPILKAN LINK (RAHASIA DAPUR): JANGAN PERNAH menuliskan, memunculkan, atau mencetak URL / Link Referensi mentah-mentah di dalam artikel hasil buatanmu! Link referensi HANYA berfungsi sebagai wawasan di dalam pikiranmu saja, BUKAN untuk diperlihatkan kepada pembaca.
-4. STRUKTUR VISUAL YANG RAPI: 
-   - Jika butuh membuat Sub-Judul atau bagian baru, gunakan HURUF KAPITAL SEMUA (contoh: PENJELAJAHAN DIMENSI AROMA).
-   - Berikan jarak baris (Double Enter) antar paragraf agar artikel terlihat bernafas, lega, dan nyaman dibaca.
-5. KONTEN ALUR: 
-   - Buka dengan narasi filosofis atau kiasan yang memikat.
-   - Tutup dengan kesimpulan elegan yang meninggalkan kesan mendalam bagi pembaca.
-6. JANGAN gunakan kalimat pembuka basa-basi seperti "Tentu, ini artikelnya". Langsung berikan hasil tulisan dari kata pertama hingga titik terakhir.`;
+STRUKTUR ALUR 3 BABAK (SANGAT PENTING):
+Nantinya di sistem website, tulisan utuhmu ini akan terbagi otomatis menjadi 3 bagian yang diselingi oleh gambar ilustrasi (Teks Awal -> Gambar 2 -> Teks Tengah -> Gambar 3 -> Teks Akhir). Agar transisinya terasa masuk akal dan indah, bangun tulisanmu dalam 3 babak narasi:
+- BABAK 1 (Pembuka): Hook filosofis yang memikat emosi, latar belakang cerita, dan pengenalan identitas parfum.
+- BABAK 2 (Eksplorasi Detail): Pembedahan notes (top, heart, base), transisi aroma, dan imajinasi visual yang kuat (agar sangat pas jika disandingkan dengan gambar ilustrasi tengah).
+- BABAK 3 (Kesimpulan & Dry Down): Kesan akhir (jejak aroma/sillage), untuk persona/momen apa parfum ini diciptakan, dan kalimat penutup yang elegan.
+
+BATASAN TOPIK & ATURAN HARGA MATI:
+1. TOPIK: Kamu HANYA BOLEH menulis tentang parfum. Jika topik di luar itu, WAJIB balas HANYA dengan kalimat: "Mohon maaf, The Scent Journal secara eksklusif hanya menerbitkan kampanye dan artikel seputar dunia wewangian."
+2. LARANGAN MARKDOWN: JANGAN PERNAH menggunakan simbol markdown (### atau **). Jika butuh sub-judul, gunakan HURUF KAPITAL SEMUA. Beri jarak baris (Double Enter) antar paragraf.
+3. RAHASIA DAPUR: JANGAN PERNAH mencetak URL/Link Referensi di dalam artikel! Jadikan link tersebut HANYA sebagai asupan wawasan/bahan tulisan di dalam otakmu saja.
+4. JANGAN gunakan kalimat basa-basi seperti "Tentu, ini artikelnya". Langsung mulai dari kata pertama artikel.`;
 
     // 2. MERAKIT PROMPT PENGGUNA BERDASARKAN INPUT TEXTBOX
     const userPrompt = `Tolong tuliskan kampanye artikel parfum dengan spesifikasi berikut:
@@ -53,9 +51,9 @@ ATURAN PENULISAN & FORMATTING (SANGAT PENTING):
 - Kategori: ${category}
 - Ringkasan Awal: ${excerpt || "Eksplorasi keindahan wewangian"}
 - Penulis: ${author || "Saa Fragrance Expert"}
-- Tautan Referensi: ${referenceLink || "Tidak ada referensi spesifik"}
+- Tautan Referensi (Bahan Bacaanmu): ${referenceLink || "Tidak ada referensi spesifik"}
 
-Buat tulisan ini mengalir secara emosional dan terlihat seperti editorial majalah mewah. Ingat, tanpa simbol markdown dan TANPA memunculkan link referensi.`;
+Buat tulisan ini mengalir secara emosional (tidak kaku), terlihat seperti editorial majalah mewah, dan ikuti struktur 3 Babak agar selaras dengan tata letak gambar di website kami.`;
 
     // 3. INISIALISASI GROQ API
     const groq = new Groq({ apiKey: process.env.VITE_GROQ_API_KEY || "" });
@@ -68,7 +66,7 @@ Buat tulisan ini mengalir secara emosional dan terlihat seperti editorial majala
     const chatCompletion = await groq.chat.completions.create({
       messages: groqMessages as any,
       model: "llama-3.3-70b-versatile",
-      temperature: 0.8, 
+      temperature: 0.85, // Sedikit dinaikkan agar kata-katanya lebih luwes, tidak monoton/kaku
       max_tokens: 2500,
     });
 
