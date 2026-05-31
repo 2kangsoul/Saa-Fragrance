@@ -16,59 +16,77 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
   // Ambil tipe bypass untuk menghindari error TypeScript
   const safeBlog = blog as any; 
 
-  // --- LOGIKA PEMOTONG TEKS YANG SUDAH DIPERBAIKI (ANTI-PENGGAL KATA) ---
-  const contentStr = safeBlog.content || "";
-  const totalLength = contentStr.length;
-  
-  const part1End = Math.floor(totalLength / 3);
-  const part2End = Math.floor((totalLength / 3) * 2);
+  // --- LOGIKA PEMOTONG PARAGRAF CERDAS (BUKAN HURUF) ---
+  const renderContent = () => {
+    const contentStr = safeBlog.content || "";
+    // Pecah teks menjadi array berdasarkan baris (Enter)
+    const lines = contentStr.split("\n");
+    const totalLines = lines.length;
 
-  // Fungsi pintar pencari batas aman pemotongan
-  const getSafeIndex = (startIndex: number) => {
-    // 1. Prioritas pertama: cari Enter ganda (akhir paragraf panjang)
-    let index = contentStr.indexOf("\n\n", startIndex);
-    
-    // 2. Prioritas kedua: cari Enter tunggal (baris baru)
-    if (index === -1) index = contentStr.indexOf("\n", startIndex);
-    
-    // 3. Prioritas darurat: cari Spasi kosong (agar kata tidak terbelah hurufnya)
-    if (index === -1) index = contentStr.indexOf(" ", startIndex);
-    
-    // Kembalikan index teraman, atau terpaksa potong di titik tersebut jika semua gagal
-    return index !== -1 ? index : startIndex;
-  };
+    // Tentukan di baris ke berapa gambar akan disisipkan
+    let img2Index = Math.floor(totalLines / 3);
+    let img3Index = Math.floor((totalLines / 3) * 2);
 
-  const safePart1End = getSafeIndex(part1End);
-  const safePart2End = getSafeIndex(part2End);
+    // Mencegah gambar numpuk di baris yang sama jika teksnya sangat pendek
+    if (img3Index <= img2Index) {
+      img3Index = img2Index + 1;
+    }
 
-  const textPart1 = contentStr.substring(0, safePart1End);
-  const textPart2 = contentStr.substring(safePart1End, safePart2End);
-  const textPart3 = contentStr.substring(safePart2End);
-  // -----------------------------
+    return lines.map((line: string, i: number) => {
+      // 1. FORMATTING TEKS
+      let textElement = null;
+      if (!line.trim()) {
+        // Jika baris kosong (enter), jadikan spasi
+        textElement = <span key={`space-${i}`} className="block h-4"></span>;
+      } else {
+        // Deteksi Sub-Judul (Huruf Kapital Semua)
+        const isHeading = line === line.toUpperCase() && /[A-Z]/.test(line);
+        if (isHeading) {
+          textElement = (
+            <span key={`text-${i}`} className="block text-lg md:text-xl font-bold text-gray-900 font-sans mt-8 mb-2">
+              {line}
+            </span>
+          );
+        } else {
+          // Teks Paragraf Normal
+          textElement = (
+            <span key={`text-${i}`} className="block text-sm md:text-base text-gray-800 leading-loose mb-2">
+              {line}
+            </span>
+          );
+        }
+      }
 
-  // --- LOGIKA PEMBEDA UKURAN TEKS ---
-  const formatContent = (text: string) => {
-    return text.split("\n").map((line, i) => {
-      // Jika baris kosong (enter), buat jarak spasi
-      if (!line.trim()) return <span key={i} className="block h-4"></span>;
-      
-      // Deteksi jika baris ini adalah sub-judul (semua huruf KAPITAL)
-      const isHeading = line === line.toUpperCase() && /[A-Z]/.test(line);
-      
-      if (isHeading) {
-        // KOTAK BIRU: Diperbesar sedikit dan ditebalkan
-        return (
-          <span key={i} className="block text-lg md:text-xl font-bold text-gray-900 font-sans mt-8 mb-2">
-            {line}
-          </span>
+      // 2. SISIPKAN GAMBAR TEPAT DI BAWAH PARAGRAF TERPILIH
+      let imageElement = null;
+      if (i === img2Index && safeBlog.imageUrl2) {
+        imageElement = (
+          <div key={`img2-${i}`} className="my-10 flex justify-center">
+            <img 
+              src={safeBlog.imageUrl2} 
+              alt="Ilustrasi 2" 
+              className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
+            />
+          </div>
         );
       }
-      
-      // KOTAK KUNING: Diperkecil sedikit (teks paragraf normal)
+      if (i === img3Index && safeBlog.imageUrl3) {
+        imageElement = (
+          <div key={`img3-${i}`} className="my-10 flex justify-center">
+            <img 
+              src={safeBlog.imageUrl3} 
+              alt="Ilustrasi 3" 
+              className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
+            />
+          </div>
+        );
+      }
+
       return (
-        <span key={i} className="block text-sm md:text-base text-gray-800 leading-loose mb-2">
-          {line}
-        </span>
+        <React.Fragment key={`fragment-${i}`}>
+          {textElement}
+          {imageElement}
+        </React.Fragment>
       );
     });
   };
@@ -90,7 +108,7 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
 
         <div className="overflow-y-auto w-full h-full bg-[#fcfbf9]">
           
-          {/* 1. GAMBAR COVER UTAMA */}
+          {/* GAMBAR COVER UTAMA */}
           <div className="h-64 md:h-96 w-full relative">
             <img
               src={blog.imageUrl}
@@ -108,6 +126,7 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
           </div>
 
           <div className="p-8 md:p-12 max-w-3xl mx-auto">
+            {/* HEADER PENULIS */}
             <div className="flex items-center gap-4 mb-10 pb-6 border-b border-gray-200">
               <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold text-xl">
                 {initial}
@@ -118,41 +137,9 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
               </div>
             </div>
 
-            {/* 2. TEKS BAGIAN 1 */}
+            {/* RENDER TEKS & GAMBAR (HASIL LOGIKA BARU) */}
             <div className="font-serif">
-              {formatContent(textPart1)}
-            </div>
-
-            {/* 3. GAMBAR KEDUA */}
-            {safeBlog.imageUrl2 && (
-              <div className="my-10 flex justify-center">
-                <img 
-                  src={safeBlog.imageUrl2} 
-                  alt="Ilustrasi 2" 
-                  className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
-                />
-              </div>
-            )}
-
-            {/* 4. TEKS BAGIAN 2 */}
-            <div className="font-serif">
-              {formatContent(textPart2)}
-            </div>
-
-            {/* 5. GAMBAR KETIGA */}
-            {safeBlog.imageUrl3 && (
-              <div className="my-10 flex justify-center">
-                <img 
-                  src={safeBlog.imageUrl3} 
-                  alt="Ilustrasi 3" 
-                  className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
-                />
-              </div>
-            )}
-
-            {/* 6. TEKS BAGIAN 3 (AKHIR) */}
-            <div className="font-serif">
-              {formatContent(textPart3)}
+              {renderContent()}
             </div>
 
           </div>
