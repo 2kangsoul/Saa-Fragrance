@@ -20,28 +20,31 @@ export default function BlogCard({ blog, onReadMore }: BlogCardProps) {
         </div>
       </div>
 
-      {/* KONTEN ARTIKEL - Jarak dan ukuran teks diperkecil */}
+      {/* KONTEN ARTIKEL - Flex-grow memastikan area ini memenuhi sisa ruang kartu */}
       <div className="p-4 flex flex-col flex-grow">
+        
+        {/* PERBAIKAN 1: Author & Tanggal dikunci 1 baris, dipotong jika terlalu panjang */}
         <div className="flex justify-between items-center text-[10px] text-gray-400 mb-2 font-medium">
-          <span>
+          <span className="truncate pr-2">
             Oleh: <span className="text-gray-700">{blog.author}</span>
           </span>
-          <span>{blog.date}</span>
+          <span className="whitespace-nowrap flex-shrink-0">{blog.date}</span>
         </div>
 
-        <h2 className="text-base font-bold text-gray-900 mb-2 leading-snug line-clamp-2">
+        {/* PERBAIKAN 2: Judul dikunci tingginya mutlak (h-[2.75rem]) agar tidak ada yang naik-turun */}
+        <h2 className="text-base font-bold text-gray-900 mb-2 leading-snug line-clamp-2 h-[2.75rem]">
           {blog.title}
         </h2>
 
-        {/* --- PERBAIKAN: Menambahkan 'text-justify' di sini --- */}
-        <p className="text-xs text-justify text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
+        {/* Excerpt dibiarkan memotong di baris ke-3 */}
+        <p className="text-xs text-justify text-gray-600 mb-4 leading-relaxed line-clamp-3">
           {blog.excerpt}
         </p>
 
-        {/* TOMBOL - Dibuat lebih ramping */}
+        {/* PERBAIKAN 3: mt-auto memaksa tombol selalu turun merapat ke garis bawah kartu */}
         <button
           onClick={() => onReadMore(blog)}
-          className="inline-flex items-center justify-center w-full py-2.5 bg-gray-50 text-gray-900 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-gray-200 hover:bg-gray-900 hover:text-white transition-colors group/btn"
+          className="mt-auto inline-flex items-center justify-center w-full py-2.5 bg-gray-50 text-gray-900 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-gray-200 hover:bg-gray-900 hover:text-white transition-colors group/btn"
         >
           Baca Selengkapnya
           <svg
