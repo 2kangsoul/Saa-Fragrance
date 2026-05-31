@@ -1,3 +1,4 @@
+import React from "react";
 import type { BlogPost } from "../types/blogTypes"; 
 
 interface BlogReadModalProps {
@@ -15,24 +16,37 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
   // Ambil tipe bypass untuk menghindari error TypeScript
   const safeBlog = blog as any; 
 
-  // --- LOGIKA PEMOTONG TEKS ---
-  // Kita akan membagi teks menjadi 3 bagian untuk diselipkan gambar
+  // --- LOGIKA PEMOTONG TEKS YANG SUDAH DIPERBAIKI (ANTI-PENGGAL KATA) ---
   const contentStr = safeBlog.content || "";
   const totalLength = contentStr.length;
   
   const part1End = Math.floor(totalLength / 3);
   const part2End = Math.floor((totalLength / 3) * 2);
 
-  // Mencari jeda baris/enter terdekat agar teks tidak terpotong di tengah kalimat
-  const safePart1End = contentStr.indexOf("\n\n", part1End) !== -1 ? contentStr.indexOf("\n\n", part1End) : part1End;
-  const safePart2End = contentStr.indexOf("\n\n", part2End) !== -1 ? contentStr.indexOf("\n\n", part2End) : part2End;
+  // Fungsi pintar pencari batas aman pemotongan
+  const getSafeIndex = (startIndex: number) => {
+    // 1. Prioritas pertama: cari Enter ganda (akhir paragraf panjang)
+    let index = contentStr.indexOf("\n\n", startIndex);
+    
+    // 2. Prioritas kedua: cari Enter tunggal (baris baru)
+    if (index === -1) index = contentStr.indexOf("\n", startIndex);
+    
+    // 3. Prioritas darurat: cari Spasi kosong (agar kata tidak terbelah hurufnya)
+    if (index === -1) index = contentStr.indexOf(" ", startIndex);
+    
+    // Kembalikan index teraman, atau terpaksa potong di titik tersebut jika semua gagal
+    return index !== -1 ? index : startIndex;
+  };
+
+  const safePart1End = getSafeIndex(part1End);
+  const safePart2End = getSafeIndex(part2End);
 
   const textPart1 = contentStr.substring(0, safePart1End);
   const textPart2 = contentStr.substring(safePart1End, safePart2End);
   const textPart3 = contentStr.substring(safePart2End);
   // -----------------------------
 
-  // --- LOGIKA PEMBEDA UKURAN TEKS (BARU) ---
+  // --- LOGIKA PEMBEDA UKURAN TEKS ---
   const formatContent = (text: string) => {
     return text.split("\n").map((line, i) => {
       // Jika baris kosong (enter), buat jarak spasi
@@ -109,7 +123,7 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
               {formatContent(textPart1)}
             </div>
 
-            {/* 3. GAMBAR KEDUA (Diperkecil / Lebar 70% di tengah) */}
+            {/* 3. GAMBAR KEDUA */}
             {safeBlog.imageUrl2 && (
               <div className="my-10 flex justify-center">
                 <img 
@@ -125,7 +139,7 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
               {formatContent(textPart2)}
             </div>
 
-            {/* 5. GAMBAR KETIGA (Diperkecil / Lebar 70% di tengah) */}
+            {/* 5. GAMBAR KETIGA */}
             {safeBlog.imageUrl3 && (
               <div className="my-10 flex justify-center">
                 <img 
