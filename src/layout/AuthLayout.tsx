@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+// --- TAMBAHKAN Outlet DI SINI ---
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
-import MainLayout from "../Features/header/component/MainLayout";
+// (Import MainLayout sudah dihapus dari sini karena sudah tidak dipakai)
 
 export default function AuthLayout() {
   const { isAuthenticated, user, fetchCurrentUser } = useAuthStore();
@@ -51,6 +52,6 @@ export default function AuthLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  // Jika semua aman, render halamannya
-  return <MainLayout />;
+  // Jika semua aman, HANYA RENDER OUTLET (komponen anak seperti Products), jangan panggil MainLayout lagi
+  return <Outlet />;
 }
