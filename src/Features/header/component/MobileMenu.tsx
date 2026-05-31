@@ -2,7 +2,12 @@ import { Link } from "react-router-dom";
 import { useMobileMenu } from "../hooks/useMobileMenu";
 import type { MobileMenuProps } from "../types/MobileMenu.types";
 
-export default function MobileMenu(props: MobileMenuProps) {
+// Menambahkan fungsi pop-up register ke dalam tipe props
+interface ExtendedMobileMenuProps extends MobileMenuProps {
+  setIsRegisterModalOpen?: (val: boolean) => void;
+}
+
+export default function MobileMenu(props: ExtendedMobileMenuProps) {
   // Ambil data dan fungsi bersih dari custom hook
   const {
     isMobileMenuOpen,
@@ -140,13 +145,19 @@ export default function MobileMenu(props: MobileMenuProps) {
               >
                 Sign in
               </Link>
-              <Link
-                to="/register"
-                onClick={closeMenu}
+              
+              {/* --- PERBAIKAN: Link Register diubah menjadi Button Modal --- */}
+              <button
+                onClick={() => {
+                  closeMenu(); // Tutup menu mobile dulu
+                  if (props.setIsRegisterModalOpen) {
+                    props.setIsRegisterModalOpen(true); // Lalu buka modal register
+                  }
+                }}
                 className="w-full text-center px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors"
               >
                 Register
-              </Link>
+              </button>
             </div>
           )}
         </div>

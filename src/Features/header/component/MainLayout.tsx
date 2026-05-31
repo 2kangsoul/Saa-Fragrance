@@ -6,8 +6,8 @@ import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerMod
 import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 import Header from "../Header";
-// --- KITA KEMBALIKAN KE HURUF KECIL KARENA NAMA FILE ANDA ADALAH footer.tsx ---
-import Footer from "../FooterLayout"
+// Import disamakan dengan nama file dan komponen yang baru
+import FooterLayout from "../FooterLayout";
 
 export default function MainLayout() {
   // Ambil semua state dan fungsi dari custom hook
@@ -38,7 +38,8 @@ export default function MainLayout() {
         onClose={() => layoutState.setIsBlogModalOpen(false)}
       />
 
-      <Footer />
+      {/* Panggil komponen menggunakan nama yang baru */}
+      <FooterLayout />
     </div>
   );
 }

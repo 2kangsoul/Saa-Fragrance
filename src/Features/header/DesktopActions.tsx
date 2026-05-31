@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import type { UseMainLayoutReturn } from "../header/types/MainLayout.types";
 
-export default function DesktopActions(props: UseMainLayoutReturn) {
+// Menambahkan fungsi pop-up register ke dalam tipe props
+interface DesktopActionsProps extends UseMainLayoutReturn {
+  setIsRegisterModalOpen?: (val: boolean) => void;
+}
+
+export default function DesktopActions(props: DesktopActionsProps) {
   const {
     isAuthenticated,
     user,
@@ -11,6 +16,7 @@ export default function DesktopActions(props: UseMainLayoutReturn) {
     setIsAdminModalOpen,
     setIsPerfumeModalOpen,
     setIsBlogModalOpen,
+    setIsRegisterModalOpen, // <-- TAMBAHAN UNTUK MODAL REGISTER
   } = props;
 
   return (
@@ -105,12 +111,14 @@ export default function DesktopActions(props: UseMainLayoutReturn) {
           >
             Sign in
           </Link>
-          <Link
-            to="/register"
+          
+          {/* --- PERBAIKAN: Link Register diubah menjadi Button Modal --- */}
+          <button
+            onClick={() => setIsRegisterModalOpen && setIsRegisterModalOpen(true)}
             className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
           >
             Register
-          </Link>
+          </button>
         </>
       )}
     </div>
