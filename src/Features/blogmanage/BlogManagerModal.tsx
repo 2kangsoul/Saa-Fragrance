@@ -17,7 +17,7 @@ export default function BlogManagerModal({
 
   // STATE UNTUK OTORISASI ROLE & STATUS
   const [userRole, setUserRole] = useState<string>("user");
-  const [isEditingPending, setIsEditingPending] = useState(false); // Deteksi jika sedang me-review artikel pending
+  const [isEditingPending, setIsEditingPending] = useState(false);
 
   // STATE UNTUK DATA ASLI DARI BACKENDLESS
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -67,7 +67,6 @@ export default function BlogManagerModal({
       fetchBlogs();
       setActiveTab("ai"); 
 
-      // PENDETEKSI ROLE CERDAS DARI LOCAL STORAGE
       try {
         const userStr = localStorage.getItem("user");
         const authStr = localStorage.getItem("auth-storage"); 
@@ -85,9 +84,9 @@ export default function BlogManagerModal({
 
   const isAdminOrOwner = userRole === "owner" || userRole === "admin";
 
-  // LOGIKA PEMISAHAN DATA (PENDING VS PUBLISHED)
-  const pendingBlogs = blogs.filter((b) => b.publishDate === "PENDING");
-  const publishedBlogs = blogs.filter((b) => b.publishDate !== "PENDING");
+  // LOGIKA PEMISAHAN DATA BERDASARKAN BOOLEAN (APPROVAL)
+  const pendingBlogs = blogs.filter((b) => b.approval === false || b.approval == null);
+  const publishedBlogs = blogs.filter((b) => b.approval === true);
 
   // LOGIKA PAGINASI
   const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1; 
@@ -110,7 +109,7 @@ export default function BlogManagerModal({
       content: blog.content || "",
     });
     setEditId(blog.objectId); 
-    setIsEditingPending(blog.publishDate === "PENDING"); // Tandai jika ini artikel yang butuh Approval
+    setIsEditingPending(blog.approval === false || blog.approval == null); // Tandai jika ini artikel yang butuh Approval
     setActiveTab("ai"); 
   };
 
@@ -198,15 +197,18 @@ export default function BlogManagerModal({
       };
 
       if (editId) {
-        // Jika mode edit dan artikel asalnya PENDING, berikan tanggal hari ini (Approve!)
+        // Jika mode edit dan artikel asalnya False (Pending), ubah jadi True (Approve!)
         if (isEditingPending && isAdminOrOwner) {
-          payload.publishDate = currentDate;
+          payload.approval = true;
+          payload.publishDate = currentDate; 
         }
         await backendlessApi.put(`data/Blogs/${editId}`, payload);
         toast.success(isEditingPending ? "Artikel berhasil di-Approve & Diterbitkan!" : "Artikel berhasil diperbarui!", { id: loadingToast });
       } else {
-        // Jika buat baru: Jika admin langsung terbit, jika user jadi PENDING
-        payload.publishDate = isAdminOrOwner ? currentDate : "PENDING";
+        // Jika buat baru: Jika admin langsung True, jika user jadi False
+        payload.approval = isAdminOrOwner ? true : false;
+        payload.publishDate = currentDate; // Tetap diisi agar tidak error "Not Null" di DB
+        
         await backendlessApi.post("data/Blogs", payload);
         toast.success(
           isAdminOrOwner 

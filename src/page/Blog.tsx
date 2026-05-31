@@ -49,7 +49,7 @@ export default function Blog() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {/* UBAH GRID DI SINI: Mendukung 5-6 kolom di layar besar */}
             {filteredBlogs
-              .filter((blog: any) => blog.publishDate !== "PENDING" && blog.date !== "PENDING") // <-- FILTER PENGAMAN STATUS PENDING
+              .filter((blog: any) => blog.approval === true) // <-- FILTER BOOLEAN BARU YANG ANTI JEBOL
               .map((blog) => (
               <BlogCard 
                 key={blog.id} 
