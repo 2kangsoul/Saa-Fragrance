@@ -1,5 +1,5 @@
 import React from "react";
-import type { BlogPost } from "../types/blogTypes"; // Sesuaikan path jika perlu
+import type { BlogPost } from "../types/blogTypes"; 
 
 interface BlogReadModalProps {
   isOpen: boolean;
@@ -10,13 +10,35 @@ interface BlogReadModalProps {
 export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalProps) {
   if (!isOpen || !blog) return null;
 
+  const authorName = blog.author || "Saa Editor";
+  const initial = authorName.charAt(0).toUpperCase();
+
+  // Ambil tipe bypass untuk menghindari error TypeScript
+  const safeBlog = blog as any; 
+
+  // --- LOGIKA PEMOTONG TEKS ---
+  // Kita akan membagi teks menjadi 3 bagian untuk diselipkan gambar
+  const contentStr = safeBlog.content || "";
+  const totalLength = contentStr.length;
+  
+  const part1End = Math.floor(totalLength / 3);
+  const part2End = Math.floor((totalLength / 3) * 2);
+
+  // Mencari jeda baris/enter terdekat agar teks tidak terpotong di tengah kalimat
+  const safePart1End = contentStr.indexOf("\n\n", part1End) !== -1 ? contentStr.indexOf("\n\n", part1End) : part1End;
+  const safePart2End = contentStr.indexOf("\n\n", part2End) !== -1 ? contentStr.indexOf("\n\n", part2End) : part2End;
+
+  const textPart1 = contentStr.substring(0, safePart1End);
+  const textPart2 = contentStr.substring(safePart1End, safePart2End);
+  const textPart3 = contentStr.substring(safePart2End);
+  // -----------------------------
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-8">
       <div 
         className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Tombol Close Mengambang */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 bg-black/40 backdrop-blur-md text-white rounded-full p-2 hover:bg-red-500 z-50 transition-colors"
@@ -26,10 +48,9 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
           </svg>
         </button>
 
-        {/* Area Konten yang Bisa Di-scroll */}
         <div className="overflow-y-auto w-full h-full bg-[#fcfbf9]">
           
-          {/* Hero Image Artikel */}
+          {/* 1. GAMBAR COVER UTAMA */}
           <div className="h-64 md:h-96 w-full relative">
             <img
               src={blog.imageUrl}
@@ -46,48 +67,53 @@ export default function BlogReadModal({ isOpen, onClose, blog }: BlogReadModalPr
             </div>
           </div>
 
-          {/* Body Artikel */}
           <div className="p-8 md:p-12 max-w-3xl mx-auto">
             <div className="flex items-center gap-4 mb-10 pb-6 border-b border-gray-200">
               <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                {blog.author.charAt(0).toUpperCase()}
+                {initial}
               </div>
               <div>
-                <p className="text-base font-bold text-gray-900">{blog.author}</p>
+                <p className="text-base font-bold text-gray-900">{authorName}</p>
                 <p className="text-sm text-gray-500">{blog.date}</p>
               </div>
             </div>
 
-            {/* Render Teks (Markdown Dasar) */}
+            {/* 2. TEKS BAGIAN 1 */}
             <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
-              {blog.content}
+              {textPart1}
             </div>
 
-            {/* TAMBAHAN: Menampilkan Gambar 2 (Jika Ada) */}
-            {/* @ts-ignore - Mengabaikan error TS sementara jika type belum diupdate */}
-            {blog.imageUrl2 && (
-              <div className="mt-10">
+            {/* 3. GAMBAR KEDUA (Diperkecil / Lebar 70% di tengah) */}
+            {safeBlog.imageUrl2 && (
+              <div className="my-10 flex justify-center">
                 <img 
-                  // @ts-ignore
-                  src={blog.imageUrl2} 
+                  src={safeBlog.imageUrl2} 
                   alt="Ilustrasi 2" 
-                  className="w-full h-auto rounded-xl shadow-md object-cover"
+                  className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
                 />
               </div>
             )}
 
-            {/* TAMBAHAN: Menampilkan Gambar 3 (Jika Ada) */}
-            {/* @ts-ignore - Mengabaikan error TS sementara jika type belum diupdate */}
-            {blog.imageUrl3 && (
-              <div className="mt-10">
+            {/* 4. TEKS BAGIAN 2 */}
+            <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
+              {textPart2}
+            </div>
+
+            {/* 5. GAMBAR KETIGA (Diperkecil / Lebar 70% di tengah) */}
+            {safeBlog.imageUrl3 && (
+              <div className="my-10 flex justify-center">
                 <img 
-                  // @ts-ignore
-                  src={blog.imageUrl3} 
+                  src={safeBlog.imageUrl3} 
                   alt="Ilustrasi 3" 
-                  className="w-full h-auto rounded-xl shadow-md object-cover"
+                  className="w-full md:w-3/4 max-h-[400px] rounded-2xl shadow-lg object-cover border border-gray-100"
                 />
               </div>
             )}
+
+            {/* 6. TEKS BAGIAN 3 (AKHIR) */}
+            <div className="text-gray-800 leading-loose text-base md:text-lg whitespace-pre-wrap font-serif">
+              {textPart3}
+            </div>
 
           </div>
           
