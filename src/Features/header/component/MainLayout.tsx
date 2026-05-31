@@ -7,7 +7,7 @@ import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 import Header from "../Header";
 // --- KITA KEMBALIKAN KE HURUF KECIL KARENA NAMA FILE ANDA ADALAH footer.tsx ---
-import Footer from "../footer";
+import Footer from "../FooterLayout"
 
 export default function MainLayout() {
   // Ambil semua state dan fungsi dari custom hook
