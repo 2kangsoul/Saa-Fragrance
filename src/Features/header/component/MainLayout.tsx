@@ -6,7 +6,7 @@ import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerMod
 import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 import Header from "../Header";
-import Footer from "../footer";
+import Footer from "../footer"
 
 export default function MainLayout() {
   // Ambil semua state dan fungsi dari custom hook

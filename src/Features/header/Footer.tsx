@@ -1,4 +1,4 @@
-export default function Footer() {
+export default function footer() {
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 py-4 mt-10">
