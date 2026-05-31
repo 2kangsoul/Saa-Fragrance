@@ -1,4 +1,4 @@
-export default function footer() {
+export default function Footer() {
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 py-4 mt-10">
@@ -13,7 +13,10 @@ export default function footer() {
             className="h-8 object-contain grayscale opacity-60"
           />
           <p className="mt-2">Timeless scents for the modern soul.</p>
-          <p>&copy; {new Date().getFullYear()} Saa Fragrance. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Saa Fragrance. All rights
+            reserved.
+          </p>
         </div>
       </footer>
     </>
