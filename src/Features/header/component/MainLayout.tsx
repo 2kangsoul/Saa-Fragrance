@@ -6,6 +6,7 @@ import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerMod
 import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 import Header from "../Header";
+// --- KITA KEMBALIKAN KE HURUF KECIL KARENA NAMA FILE ANDA ADALAH footer.tsx ---
 import Footer from "../footer";
 
 export default function MainLayout() {
