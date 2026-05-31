@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../../../stores/useAuthStore"; 
-import type { UseMainLayoutReturn } from "../types/MainLayout.types"; // <-- TAMBAHKAN KATA 'type' DI SINI
+import type { UseMainLayoutReturn } from "../types/MainLayout.types";
 
 export const useMainLayout = (): UseMainLayoutReturn => {
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // STATE BARU: Untuk mengontrol buka/tutup menu di layar HP
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Ambil status login, data user, dan fungsi logout dari Zustand
+  // --- STATE MODAL YANG DIPINDAHKAN DARI MAINLAYOUT.TSX ---
+  const [isManageMenuOpen, setIsManageMenuOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isPerfumeModalOpen, setIsPerfumeModalOpen] = useState(false);
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+
   const { isAuthenticated, user, logout } = useAuthStore();
 
   useEffect(() => {
@@ -21,12 +24,9 @@ export const useMainLayout = (): UseMainLayoutReturn => {
     };
 
     window.addEventListener("scroll", handleScroll);
-    
-    // Cleanup function untuk mencegah memory leak
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Mengembalikan semua state dan fungsi agar bisa dipakai di komponen UI
   return {
     isScrolled,
     isMobileMenuOpen,
@@ -34,5 +34,14 @@ export const useMainLayout = (): UseMainLayoutReturn => {
     isAuthenticated,
     user,
     logout,
+    // --- RETURN STATE MODAL BARU ---
+    isManageMenuOpen,
+    setIsManageMenuOpen,
+    isAdminModalOpen,
+    setIsAdminModalOpen,
+    isPerfumeModalOpen,
+    setIsPerfumeModalOpen,
+    isBlogModalOpen,
+    setIsBlogModalOpen,
   };
 };
