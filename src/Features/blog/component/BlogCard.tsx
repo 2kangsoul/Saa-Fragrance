@@ -33,7 +33,8 @@ export default function BlogCard({ blog, onReadMore }: BlogCardProps) {
           {blog.title}
         </h2>
 
-        <p className="text-xs text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
+        {/* --- PERBAIKAN: Menambahkan 'text-justify' di sini --- */}
+        <p className="text-xs text-justify text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
           {blog.excerpt}
         </p>
 
