@@ -1,4 +1,3 @@
-import React from "react";
 import { useBlogManager } from "../hooks/useBlogManager";
 import type { BlogManagerModalProps } from "../types/blogManagerTypes";
 
