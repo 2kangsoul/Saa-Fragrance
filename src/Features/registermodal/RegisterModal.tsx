@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-// Sesuaikan path import ini jika lokasi file api.ts Anda berbeda!
-import backendlessApi  from "../../config/api"
+import  backendlessApi  from "../../config/api"
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -9,239 +8,52 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModalProps) {
-  const [step, setStep] = useState(1);
-  
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [noHandphone, setNoHandphone] = useState(""); 
-  
-  const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState(""); 
-  const [isLoading, setIsLoading] = useState(false); // Tambahan state loading biar UX bagus
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  // ==========================================
-  // LANGKAH 1: MENGIRIM EMAIL VIA AXIOS
-  // ==========================================
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Buat 6 digit angka acak
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(randomOtp);
-
     try {
-      // Hit Endpoint Messaging Backendless
-      await backendlessApi.post('/messaging/email', {
-        subject: "Verifikasi Akun Saa Fragrance",
-        bodyparts: {
-          textmessage: `Kode OTP Anda adalah: ${randomOtp}. Jangan berikan kode ini kepada siapapun.`
-        },
-        to: [email]
-      });
-      
-      setStep(2);
-    } catch (error) {
-      console.error("Gagal mengirim OTP:", error);
-      alert("Gagal mengirim email OTP. Pastikan email Anda aktif/valid.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ==========================================
-  // LANGKAH 2: VERIFIKASI & DAFTAR VIA AXIOS
-  // ==========================================
-  const handleVerifyAndRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (otp !== generatedOtp) {
-      alert("Kode OTP salah! Silakan periksa kembali email Anda.");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      // Hit Endpoint Register Backendless
-      await backendlessApi.post('/users/register', {
-        email: email,
-        password: password,
-        name: name,
-        no_handphone: Number(noHandphone), // Diubah ke Number karena DB INT
+      // Langsung daftar tanpa OTP manual
+      await backendlessApi.post('users/register', {
+        email,
+        password,
+        name,
+        no_handphone: noHandphone,
         role: "user"
       });
 
-      alert("Akun berhasil dibuat! Silakan Sign In.");
-      handleCloseModal(); 
-      
-      if (onSwitchToLogin) {
-        onSwitchToLogin(); 
-      }
-    } catch (error) {
+      alert("Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi akun.");
+      onClose();
+      if (onSwitchToLogin) onSwitchToLogin();
+    } catch (error: any) {
       console.error("Gagal mendaftar:", error);
-      alert("Terjadi kesalahan saat membuat akun. Email mungkin sudah terdaftar.");
+      alert(error.response?.data?.message || "Gagal mendaftar. Email mungkin sudah terdaftar.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCloseModal = () => {
-    setStep(1);
-    setName("");
-    setEmail("");
-    setPassword("");
-    setNoHandphone("");
-    setOtp("");
-    setGeneratedOtp("");
-    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-        
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-[#f4f2ee]/30">
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-            {step === 1 ? "Buat Akun" : "Verifikasi Email"}
-          </h2>
-          <button
-            onClick={handleCloseModal}
-            className="text-gray-400 hover:text-gray-700 transition-colors focus:outline-none cursor-pointer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-4">Buat Akun</h2>
+        <form onSubmit={handleRegister} className="flex flex-col gap-4">
+          <input type="text" placeholder="Nama Lengkap" required value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+          <input type="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+          <input type="tel" placeholder="Nomor Handphone" required value={noHandphone} onChange={(e) => setNoHandphone(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+          <input type="password" placeholder="Password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+          <button type="submit" disabled={isLoading} className="w-full py-3 bg-gray-900 text-white rounded-lg">
+            {isLoading ? "Memproses..." : "Daftar"}
           </button>
-        </div>
-
-        <div className="p-6">
-          {step === 1 ? (
-            <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Nama Lengkap
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm transition-all"
-                  placeholder="Masukkan nama Anda"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm transition-all"
-                  placeholder="nama@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Nomor Handphone
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={noHandphone}
-                  onChange={(e) => setNoHandphone(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm transition-all"
-                  placeholder="Contoh: 08123456789"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm transition-all"
-                  placeholder="Minimal 8 karakter"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`mt-2 w-full py-3 bg-gray-900 text-white text-sm font-bold uppercase tracking-wider rounded-lg transition-colors shadow-md cursor-pointer ${isLoading ? 'opacity-50' : 'hover:bg-gray-800'}`}
-              >
-                {isLoading ? "Mengirim..." : "Kirim Kode OTP"}
-              </button>
-
-              {onSwitchToLogin && (
-                <p className="text-center text-xs text-gray-500 mt-4">
-                  Sudah punya akun?{" "}
-                  <button
-                    type="button"
-                    onClick={onSwitchToLogin}
-                    className="text-gray-900 font-bold hover:underline cursor-pointer"
-                  >
-                    Sign In
-                  </button>
-                </p>
-              )}
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyAndRegister} className="flex flex-col gap-4">
-              <div className="text-center mb-2">
-                <p className="text-sm text-gray-600">
-                  Kami telah mengirimkan 6 digit kode OTP ke email: <br />
-                  <span className="font-bold text-gray-900">{email}</span>
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 text-center">
-                  Masukkan Kode OTP
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 text-2xl text-center font-mono tracking-[0.5em] transition-all"
-                  placeholder="••••••"
-                />
-              </div>
-
-              <div className="flex gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  disabled={isLoading}
-                  className="w-1/3 py-3 bg-white border border-gray-300 text-gray-700 text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
-                >
-                  Kembali
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-2/3 py-3 bg-gray-900 text-white text-sm font-bold uppercase tracking-wider rounded-lg transition-colors shadow-md cursor-pointer ${isLoading ? 'opacity-50' : 'hover:bg-gray-800'}`}
-                >
-                  {isLoading ? "Loading..." : "Verifikasi"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
+        </form>
       </div>
     </div>
   );
