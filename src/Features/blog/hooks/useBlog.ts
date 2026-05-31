@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import backendlessApi from "../../../config/api"; // Sesuaikan jumlah titik (../) dengan struktur folder Anda
+import { useState, useEffect, useCallback } from "react";
+import backendlessApi from "../../../config/api"; 
 import type { BlogPost } from "../types/blogTypes";
 
 export const useBlog = () => {
@@ -10,43 +10,49 @@ export const useBlog = () => {
   // Kategori disesuaikan persis dengan pilihan di BlogManagerModal
   const categories = ["Semua", "Niche", "Designer", "Tips", "Review"];
 
-  // Fungsi untuk menarik data asli dari Backendless
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      setIsLoading(true);
-      try {
-        // Mengambil data dari tabel Blogs, diurutkan dari yang terbaru (opsional: tambah sortBy)
-        const res = await backendlessApi.get("data/Blogs", {
-          params: {
-            sortBy: "created desc"
-          }
-        });
-        
-        // Memetakan (Mapping) data Backendless agar sesuai dengan tipe BlogPost Anda
-        const fetchedBlogs = res.data.map((item: any) => ({
-          id: item.objectId, 
-          title: item.title,
-          excerpt: item.excerpt,
-          author: item.author,
-          date: item.publishDate, 
-          category: item.category,
-          imageUrl: item.imageUrl,
-          imageUrl2: item.imageUrl2, // <-- TAMBAHAN
-          imageUrl3: item.imageUrl3, // <-- TAMBAHAN
-          approval: item.approval, // <-- INI YANG HARUS DITAMBAHKAN AGAR TIDAK KOSONG
-          content: item.content, 
-        }));
+  // Gunakan useCallback agar fungsi ini stabil dan bisa dipanggil dari luar
+  const fetchBlogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await backendlessApi.get("data/Blogs", {
+        params: {
+          sortBy: "created desc"
+        }
+      });
+      
+      const fetchedBlogs = res.data.map((item: any) => ({
+        id: item.objectId, 
+        title: item.title,
+        excerpt: item.excerpt,
+        author: item.author,
+        date: item.publishDate, 
+        category: item.category,
+        imageUrl: item.imageUrl,
+        imageUrl2: item.imageUrl2, 
+        imageUrl3: item.imageUrl3, 
+        approval: item.approval, 
+        content: item.content, 
+      }));
 
-        setBlogs(fetchedBlogs);
-      } catch (error) {
-        console.error("Gagal mengambil data blog:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBlogs();
+      setBlogs(fetchedBlogs);
+    } catch (error) {
+      console.error("Gagal mengambil data blog:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchBlogs(); // Tarik saat pertama kali render
+    
+    // Pasang "telinga" untuk mendengarkan sinyal dari Modal Admin
+    window.addEventListener("refreshBlogs", fetchBlogs);
+    
+    // Bersihkan telinga saat pindah halaman
+    return () => {
+      window.removeEventListener("refreshBlogs", fetchBlogs);
+    };
+  }, [fetchBlogs]);
 
   // Fitur Filtering Tetap Sama
   const filteredBlogs =
@@ -59,6 +65,6 @@ export const useBlog = () => {
     setActiveCategory,
     categories,
     filteredBlogs,
-    isLoading, // Tambahan fitur loading state jika Anda butuh menampilkan animasi muter-muter
+    isLoading, 
   };
 };

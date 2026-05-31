@@ -47,7 +47,6 @@ export default function BlogManagerModal({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 1. FUNGSI TARIK DATA DARI BACKENDLESS DAN CEK ROLE
   const fetchBlogs = async () => {
     setIsLoadingBlogs(true);
     try {
@@ -84,18 +83,15 @@ export default function BlogManagerModal({
 
   const isAdminOrOwner = userRole === "owner" || userRole === "admin";
 
-  // LOGIKA PEMISAHAN DATA BERDASARKAN BOOLEAN (APPROVAL)
   const pendingBlogs = blogs.filter((b) => b.approval === false || b.approval == null);
   const publishedBlogs = blogs.filter((b) => b.approval === true);
 
-  // LOGIKA PAGINASI
   const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1; 
   const currentPending = pendingBlogs.slice((pendingPage - 1) * 5, pendingPage * 5);
   
   const totalPublishedPages = Math.ceil(publishedBlogs.length / 4) || 1;
   const currentPublished = publishedBlogs.slice((publishedPage - 1) * 4, publishedPage * 4);
 
-  // 2. FUNGSI EDIT / FULL REVIEW DATA
   const handleEditClick = (blog: any) => {
     setFormData({
       title: blog.title || "",
@@ -109,11 +105,11 @@ export default function BlogManagerModal({
       content: blog.content || "",
     });
     setEditId(blog.objectId); 
-    setIsEditingPending(blog.approval === false || blog.approval == null); // Tandai jika ini artikel yang butuh Approval
+    setIsEditingPending(blog.approval === false || blog.approval == null); 
     setActiveTab("ai"); 
   };
 
-  // 3. FUNGSI DELETE DATA
+  // 3. FUNGSI DELETE DATA DENGAN JEDA WAKTU
   const handleDeleteClick = async (objectId: string) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus/menolak artikel ini secara permanen?")) return;
     
@@ -121,14 +117,19 @@ export default function BlogManagerModal({
     try {
       await backendlessApi.delete(`data/Blogs/${objectId}`);
       toast.success("Artikel berhasil dihapus!", { id: loadingToast });
-      fetchBlogs(); 
+      
+      // Beri jeda 500ms agar Backendless selesai hapus data sebelum ditarik ulang
+      setTimeout(() => {
+        fetchBlogs(); 
+        window.dispatchEvent(new Event("refreshBlogs"));
+      }, 500);
+
     } catch (error) {
       console.error("Gagal menghapus:", error);
       toast.error("Gagal menghapus artikel.", { id: loadingToast });
     }
   };
 
-  // Fungsi Menembak API Groq Llama 3.3
   const handleGenerateAI = async () => {
     if (!formData.title || !formData.category) {
       toast.error("Judul dan Kategori wajib diisi sebagai acuan AI!");
@@ -167,7 +168,7 @@ export default function BlogManagerModal({
     }
   };
 
-  // Fungsi Menyimpan/Update ke Backendless
+  // Fungsi Menyimpan/Update ke Backendless DENGAN JEDA WAKTU
   const handleSaveBlog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.content) {
@@ -197,7 +198,6 @@ export default function BlogManagerModal({
       };
 
       if (editId) {
-        // Jika mode edit dan artikel asalnya False (Pending), ubah jadi True (Approve!)
         if (isEditingPending && isAdminOrOwner) {
           payload.approval = true;
           payload.publishDate = currentDate; 
@@ -205,9 +205,8 @@ export default function BlogManagerModal({
         await backendlessApi.put(`data/Blogs/${editId}`, payload);
         toast.success(isEditingPending ? "Artikel berhasil di-Approve & Diterbitkan!" : "Artikel berhasil diperbarui!", { id: loadingToast });
       } else {
-        // Jika buat baru: Jika admin langsung True, jika user jadi False
         payload.approval = isAdminOrOwner ? true : false;
-        payload.publishDate = currentDate; // Tetap diisi agar tidak error "Not Null" di DB
+        payload.publishDate = currentDate; 
         
         await backendlessApi.post("data/Blogs", payload);
         toast.success(
@@ -218,7 +217,6 @@ export default function BlogManagerModal({
         );
       }
 
-      // Reset Form
       setFormData({
         title: "", category: "Niche", excerpt: "", author: "",
         imageUrl: "", imageUrl2: "", imageUrl3: "", referenceLink: "", content: "",
@@ -226,7 +224,12 @@ export default function BlogManagerModal({
       setEditId(null);
       setIsEditingPending(false);
       
-      fetchBlogs();
+      // Beri jeda 500ms agar Backendless selesai simpan data sebelum ditarik ulang
+      setTimeout(() => {
+        fetchBlogs();
+        window.dispatchEvent(new Event("refreshBlogs"));
+      }, 500);
+
       if (isAdminOrOwner) setActiveTab("manage");
       
     } catch (error: any) {
@@ -399,7 +402,7 @@ export default function BlogManagerModal({
           </>
         ) : (
           
-          /* KONDISI TAB MANAGE BLOG (HANYA BISA DIAKSES JIKA ADMIN / OWNER) */
+          /* KONDISI TAB MANAGE BLOG */
           <div className="flex-1 overflow-hidden p-6 bg-[#f4f2ee]">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
               
