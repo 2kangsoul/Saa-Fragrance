@@ -1,3 +1,4 @@
+import { useState } from "react"; // <-- TAMBAHAN: Import useState
 import { Outlet } from "react-router-dom";
 import { useMainLayout } from "../hooks/useMainLayout";
 
@@ -5,24 +6,31 @@ import AdminManagerModal from "../../adminmanage/AdminManagerModal";
 import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal";
 import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
-import Header from "../Header";
-// Import disamakan dengan nama file dan komponen yang baru
+// --- TAMBAHAN: Import Register Modal dari folder Anda ---
+import RegisterModal from "../../registermodal/RegisterModal";
+
+import Header from "../Header"
 import FooterLayout from "../FooterLayout";
 
 export default function MainLayout() {
-  // Ambil semua state dan fungsi dari custom hook
   const layoutState = useMainLayout();
+
+  // --- TAMBAHAN: State khusus untuk membuka/menutup Register Modal ---
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
-      {/* Oper seluruh state ke Header menggunakan spread operator */}
-      <Header {...layoutState} />
+      {/* Oper state tambahan setIsRegisterModalOpen ke Header */}
+      <Header 
+        {...layoutState} 
+        setIsRegisterModalOpen={setIsRegisterModalOpen} 
+      />
 
       <main>
         <Outlet />
       </main>
 
-      {/* SEMUA MODAL POPUP */}
+      {/* SEMUA MODAL POPUP LAINNYA */}
       <AdminManagerModal
         isOpen={layoutState.isAdminModalOpen}
         onClose={() => layoutState.setIsAdminModalOpen(false)}
@@ -38,7 +46,12 @@ export default function MainLayout() {
         onClose={() => layoutState.setIsBlogModalOpen(false)}
       />
 
-      {/* Panggil komponen menggunakan nama yang baru */}
+      {/* --- TAMBAHAN: Render Register Modal di sini --- */}
+      <RegisterModal 
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+      />
+
       <FooterLayout />
     </div>
   );

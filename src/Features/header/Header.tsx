@@ -5,7 +5,12 @@ import DesktopNav from "./DesktopNav";
 import DesktopActions from "./DesktopActions";
 import MobileMenu from "../../Features/header/component/MobileMenu"
 
-export default function Header(props: UseMainLayoutReturn) {
+// --- TAMBAHAN: Menambahkan tipe props baru agar TypeScript tidak merah ---
+interface HeaderProps extends UseMainLayoutReturn {
+  setIsRegisterModalOpen?: (val: boolean) => void;
+}
+
+export default function Header(props: HeaderProps) {
   const { isScrolled } = props;
 
   return (
