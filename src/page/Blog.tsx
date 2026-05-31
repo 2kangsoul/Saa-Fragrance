@@ -46,7 +46,8 @@ export default function Blog() {
             <span className="animate-pulse">Memuat artikel...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {/* UBAH GRID DI SINI: Mendukung 5-6 kolom di layar besar */}
             {filteredBlogs.map((blog) => (
               <BlogCard 
                 key={blog.id} 

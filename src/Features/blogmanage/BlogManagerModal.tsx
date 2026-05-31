@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import backendlessApi from "../../config/api";
 
@@ -11,14 +11,26 @@ export default function BlogManagerModal({
   isOpen,
   onClose,
 }: BlogManagerModalProps) {
+  const [activeTab, setActiveTab] = useState<"ai" | "manage">("ai");
+  const [pendingPage, setPendingPage] = useState(1);
+  const [publishedPage, setPublishedPage] = useState(1);
+
+  // STATE UNTUK OTORISASI ROLE
+  const [userRole, setUserRole] = useState<string>("user");
+
+  // STATE UNTUK DATA ASLI DARI BACKENDLESS
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     title: "",
     category: "Niche",
     excerpt: "",
     author: "",
-    imageUrl: "", // Gambar 1 (Cover Utama)
-    imageUrl2: "", // Gambar 2
-    imageUrl3: "", // Gambar 3
+    imageUrl: "",
+    imageUrl2: "",
+    imageUrl3: "",
     referenceLink: "",
     content: "",
   });
@@ -34,6 +46,85 @@ export default function BlogManagerModal({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 1. FUNGSI TARIK DATA DARI BACKENDLESS DAN CEK ROLE
+  const fetchBlogs = async () => {
+    setIsLoadingBlogs(true);
+    try {
+      const response = await backendlessApi.get("data/Blogs?sortBy=created%20desc");
+      const fetchedData = response.data || response; 
+      setBlogs(fetchedData);
+    } catch (error) {
+      console.error("Gagal menarik data:", error);
+      toast.error("Gagal memuat data blog dari database.");
+    } finally {
+      setIsLoadingBlogs(false);
+    }
+  };
+
+  // Otomatis tarik data & deteksi role saat modal dibuka
+  useEffect(() => {
+    if (isOpen) {
+      fetchBlogs();
+      // Reset tab ke AI setiap kali modal dibuka agar aman
+      setActiveTab("ai"); 
+
+      // PENDETEKSI ROLE CERDAS DARI LOCAL STORAGE
+      try {
+        const userStr = localStorage.getItem("user");
+        const authStr = localStorage.getItem("auth-storage"); // Jika pakai Zustand persist
+
+        if (userStr) {
+          setUserRole(JSON.parse(userStr)?.role || "user");
+        } else if (authStr) {
+          setUserRole(JSON.parse(authStr)?.state?.user?.role || "user");
+        }
+      } catch (error) {
+        console.error("Gagal membaca role user", error);
+      }
+    }
+  }, [isOpen]);
+
+  const isAdminOrOwner = userRole === "owner" || userRole === "admin";
+
+  // LOGIKA PAGINASI DATA ASLI
+  const pendingBlogs: any[] = []; 
+  const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1; 
+  
+  const totalPublishedPages = Math.ceil(blogs.length / 4) || 1;
+  const currentPublished = blogs.slice((publishedPage - 1) * 4, publishedPage * 4);
+
+  // 2. FUNGSI EDIT DATA
+  const handleEditClick = (blog: any) => {
+    setFormData({
+      title: blog.title || "",
+      category: blog.category || "Niche",
+      excerpt: blog.excerpt || "",
+      author: blog.author || "",
+      imageUrl: blog.imageUrl || "",
+      imageUrl2: blog.imageUrl2 || "",
+      imageUrl3: blog.imageUrl3 || "",
+      referenceLink: "", 
+      content: blog.content || "",
+    });
+    setEditId(blog.objectId); 
+    setActiveTab("ai"); 
+  };
+
+  // 3. FUNGSI DELETE DATA
+  const handleDeleteClick = async (objectId: string) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus artikel ini secara permanen?")) return;
+    
+    const loadingToast = toast.loading("Menghapus artikel...");
+    try {
+      await backendlessApi.delete(`data/Blogs/${objectId}`);
+      toast.success("Artikel berhasil dihapus!", { id: loadingToast });
+      fetchBlogs(); 
+    } catch (error) {
+      console.error("Gagal menghapus:", error);
+      toast.error("Gagal menghapus artikel.", { id: loadingToast });
+    }
+  };
+
   // Fungsi Menembak API Groq Llama 3.3
   const handleGenerateAI = async () => {
     if (!formData.title || !formData.category) {
@@ -42,9 +133,7 @@ export default function BlogManagerModal({
     }
 
     setIsGenerating(true);
-    const loadingToast = toast.loading(
-      "AI Llama 3.3 sedang meracik artikel...",
-    );
+    const loadingToast = toast.loading("AI Llama 3.3 sedang meracik artikel...");
 
     try {
       const response = await fetch("/api/generate-blog", {
@@ -75,7 +164,7 @@ export default function BlogManagerModal({
     }
   };
 
-  // Fungsi Menyimpan ke Backendless
+  // Fungsi Menyimpan/Update ke Backendless
   const handleSaveBlog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.content) {
@@ -84,7 +173,7 @@ export default function BlogManagerModal({
     }
 
     setIsSaving(true);
-    const loadingToast = toast.loading("Menyimpan ke database...");
+    const loadingToast = toast.loading(editId ? "Memperbarui artikel..." : "Menyimpan ke database...");
 
     try {
       const currentDate = new Date().toLocaleDateString("id-ID", {
@@ -93,7 +182,7 @@ export default function BlogManagerModal({
         year: "numeric",
       });
 
-      await backendlessApi.post("data/Blogs", {
+      const payload = {
         title: formData.title,
         category: formData.category,
         excerpt: formData.excerpt,
@@ -102,29 +191,49 @@ export default function BlogManagerModal({
         imageUrl2: formData.imageUrl2,
         imageUrl3: formData.imageUrl3,
         content: formData.content,
-        publishDate: currentDate,
-      });
+        ...(editId ? {} : { publishDate: currentDate }), 
+      };
 
+      if (editId) {
+        await backendlessApi.put(`data/Blogs/${editId}`, payload);
+        toast.success("Artikel berhasil diperbarui!", { id: loadingToast });
+      } else {
+        await backendlessApi.post("data/Blogs", payload);
+        toast.success(
+          isAdminOrOwner 
+            ? "Artikel berhasil diterbitkan!" 
+            : "Artikel berhasil dikirim untuk review Admin!", 
+          { id: loadingToast }
+        );
+      }
+
+      // Reset Form
       setFormData({
-        title: "",
-        category: "Niche",
-        excerpt: "",
-        author: "",
-        imageUrl: "",
-        imageUrl2: "",
-        imageUrl3: "",
-        referenceLink: "",
-        content: "",
+        title: "", category: "Niche", excerpt: "", author: "",
+        imageUrl: "", imageUrl2: "", imageUrl3: "", referenceLink: "", content: "",
       });
-
-      onClose();
-      toast.success("Artikel berhasil diterbitkan!", { id: loadingToast });
+      setEditId(null);
+      
+      fetchBlogs();
+      // Hanya alihkan ke tab manage jika user adalah admin/owner
+      if (isAdminOrOwner) {
+        setActiveTab("manage");
+      }
+      
     } catch (error: any) {
       console.error("Database Error:", error);
       toast.error("Gagal menyimpan ke database.", { id: loadingToast });
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditId(null);
+    setFormData({
+      title: "", category: "Niche", excerpt: "", author: "",
+      imageUrl: "", imageUrl2: "", imageUrl3: "", referenceLink: "", content: "",
+    });
   };
 
   if (!isOpen) return null;
@@ -139,263 +248,259 @@ export default function BlogManagerModal({
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <div className="px-6 py-5 border-b border-gray-100 shrink-0 flex justify-between items-center bg-gray-50">
+        {/* HEADER DENGAN TAB KONTROL */}
+        <div className="px-6 py-4 border-b border-gray-100 shrink-0 flex justify-between items-center bg-gray-50">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              ✍️ Pembuat Artikel Blog AI
+              {activeTab === "ai" 
+                ? (editId ? "✏️ Mode Edit Artikel" : "✍️ Pembuat Artikel Blog AI") 
+                : "⚙️ Dashboard Admin Blog"}
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Isi referensi singkat, biarkan Llama 3.3 merangkai sisanya.
+              {activeTab === "ai" 
+                ? "Isi referensi singkat, biarkan Llama 3.3 merangkai sisanya." 
+                : "Pusat kontrol untuk meninjau, menyetujui, dan mengelola artikel."}
             </p>
           </div>
-        </div>
-
-        <div className="flex-1 overflow-hidden p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-            {/* KOLOM KIRI: Input Data Dasar */}
-            <div className="lg:col-span-4 space-y-4 overflow-y-auto pr-2 pb-10">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Judul Artikel *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="Contoh: Sejarah Parfum Niche"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Kategori *
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm bg-white"
-                  >
-                    <option value="Niche">Niche</option>
-                    <option value="Designer">Designer</option>
-                    <option value="Tips">Tips</option>
-                    <option value="Review">Review</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Penulis
-                  </label>
-                  <input
-                    type="text"
-                    name="author"
-                    value={formData.author}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                    placeholder="Nama Anda"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Ringkasan (Excerpt)
-                </label>
-                <textarea
-                  name="excerpt"
-                  value={formData.excerpt}
-                  onChange={handleChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm resize-none"
-                  placeholder="Teks singkat yang muncul di kartu blog..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  URL Gambar Cover (Utama) *
-                </label>
-                <input
-                  type="text"
-                  name="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  URL Gambar 2 (Opsional)
-                </label>
-                <input
-                  type="text"
-                  name="imageUrl2"
-                  value={formData.imageUrl2}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  URL Gambar 3 (Opsional)
-                </label>
-                <input
-                  type="text"
-                  name="imageUrl3"
-                  value={formData.imageUrl3}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Link Referensi (Bahan AI)
-                </label>
-                <input
-                  type="text"
-                  name="referenceLink"
-                  value={formData.referenceLink}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="URL artikel/web untuk bahan bacaan AI"
-                />
-              </div>
-
+          
+          <div className="flex bg-gray-200 p-1 rounded-lg mr-8">
+            <button
+              onClick={() => setActiveTab("ai")}
+              className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+                activeTab === "ai" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              AI Generator
+            </button>
+            
+            {/* TAB MANAGE HANYA MUNCUL UNTUK ADMIN DAN OWNER */}
+            {isAdminOrOwner && (
               <button
-                type="button"
-                onClick={handleGenerateAI}
-                disabled={isGenerating}
-                className="w-full mt-4 bg-gradient-to-r from-[#F58427] to-orange-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                onClick={() => setActiveTab("manage")}
+                className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+                  activeTab === "manage" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
               >
-                {isGenerating ? (
-                  <span className="animate-pulse">✨ AI Sedang Berpikir...</span>
-                ) : (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Generate Konten AI
-                  </>
-                )}
+                Manage Blog
               </button>
-            </div>
-
-            {/* KOLOM KANAN: FULL REVIEW (Preview Gambar & Text) */}
-            <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden bg-white">
-              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 shrink-0">
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                  Full Review (Preview)
-                </span>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
-                
-                {/* GRID PREVIEW GAMBAR (MENAMPILKAN HINGGA 3 GAMBAR) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
-                  {/* Preview Gambar 1 */}
-                  {formData.imageUrl && (
-                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
-                      <img
-                        src={formData.imageUrl}
-                        className="w-full h-full object-cover"
-                        alt="Preview 1"
-                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+1")}
-                      />
-                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Cover</div>
-                    </div>
-                  )}
-
-                  {/* Preview Gambar 2 */}
-                  {formData.imageUrl2 && (
-                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
-                      <img
-                        src={formData.imageUrl2}
-                        className="w-full h-full object-cover"
-                        alt="Preview 2"
-                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+2")}
-                      />
-                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 2</div>
-                    </div>
-                  )}
-
-                  {/* Preview Gambar 3 */}
-                  {formData.imageUrl3 && (
-                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
-                      <img
-                        src={formData.imageUrl3}
-                        className="w-full h-full object-cover"
-                        alt="Preview 3"
-                        onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error+Image+3")}
-                      />
-                      <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 3</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info Jika Tidak Ada Gambar Sama Sekali */}
-                {!formData.imageUrl && !formData.imageUrl2 && !formData.imageUrl3 && (
-                   <div className="w-full h-24 rounded-xl border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-xs italic">
-                     Belum ada URL gambar yang dimasukkan...
-                   </div>
-                )}
-
-                {/* TEXTAREA EDITOR */}
-                <textarea
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  className="w-full min-h-[400px] flex-1 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none bg-transparent font-serif"
-                  placeholder="Hasil AI akan muncul di sini. Anda bisa mengeditnya..."
-                ></textarea>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end shrink-0">
-          <button
-            onClick={handleSaveBlog}
-            disabled={isSaving}
-            className="px-8 py-2.5 bg-gray-900 text-white text-sm font-bold rounded hover:bg-black transition-colors disabled:opacity-50"
-          >
-            {isSaving ? "Menerbitkan..." : "Terbitkan Artikel"}
-          </button>
-        </div>
+        {/* KONDISI TAB AI GENERATOR */}
+        {activeTab === "ai" ? (
+          <>
+            <div className="flex-1 overflow-hidden p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                {/* KOLOM KIRI */}
+                <div className="lg:col-span-4 space-y-4 overflow-y-auto pr-2 pb-10">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Judul Artikel *</label>
+                    <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="Contoh: Sejarah Parfum Niche" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Kategori *</label>
+                      <select name="category" value={formData.category} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm bg-white">
+                        <option value="Niche">Niche</option>
+                        <option value="Designer">Designer</option>
+                        <option value="Tips">Tips</option>
+                        <option value="Review">Review</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Penulis</label>
+                      <input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="Nama Anda" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Ringkasan (Excerpt)</label>
+                    <textarea name="excerpt" value={formData.excerpt} onChange={handleChange} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm resize-none" placeholder="Teks singkat yang muncul di kartu blog..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">URL Gambar Cover (Utama) *</label>
+                    <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">URL Gambar 2 (Opsional)</label>
+                    <input type="text" name="imageUrl2" value={formData.imageUrl2} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">URL Gambar 3 (Opsional)</label>
+                    <input type="text" name="imageUrl3" value={formData.imageUrl3} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Link Referensi (Bahan AI)</label>
+                    <input type="text" name="referenceLink" value={formData.referenceLink} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm" placeholder="URL artikel/web untuk bahan bacaan AI" />
+                  </div>
+                  <button type="button" onClick={handleGenerateAI} disabled={isGenerating} className="w-full mt-4 bg-gradient-to-r from-[#F58427] to-orange-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isGenerating ? <span className="animate-pulse">✨ AI Sedang Berpikir...</span> : <>Generate Konten AI</>}
+                  </button>
+                </div>
+
+                {/* KOLOM KANAN */}
+                <div className="lg:col-span-8 flex flex-col h-full border border-gray-200 rounded-lg overflow-hidden bg-white">
+                  <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 shrink-0">
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Full Review (Preview)</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+                      {formData.imageUrl && (
+                        <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50"><img src={formData.imageUrl} className="w-full h-full object-cover" alt="Preview 1" onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error")}/> <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Cover</div></div>
+                      )}
+                      {formData.imageUrl2 && (
+                        <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50"><img src={formData.imageUrl2} className="w-full h-full object-cover" alt="Preview 2" onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error")}/> <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 2</div></div>
+                      )}
+                      {formData.imageUrl3 && (
+                        <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50"><img src={formData.imageUrl3} className="w-full h-full object-cover" alt="Preview 3" onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x225?text=Error")}/> <div className="absolute top-2 left-2 bg-black/60 text-[8px] text-white px-1.5 py-0.5 rounded font-bold uppercase">Image 3</div></div>
+                      )}
+                    </div>
+                    {!formData.imageUrl && !formData.imageUrl2 && !formData.imageUrl3 && (
+                      <div className="w-full h-24 rounded-xl border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-xs italic">Belum ada URL gambar yang dimasukkan...</div>
+                    )}
+                    <textarea name="content" value={formData.content} onChange={handleChange} className="w-full min-h-[400px] flex-1 focus:outline-none focus:ring-0 text-sm text-gray-800 leading-relaxed resize-none bg-transparent font-serif" placeholder="Hasil AI akan muncul di sini. Anda bisa mengeditnya..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 shrink-0">
+              {editId && isAdminOrOwner && (
+                <button onClick={handleCancelEdit} className="px-6 py-2.5 bg-gray-200 text-gray-700 text-sm font-bold rounded hover:bg-gray-300 transition-colors">
+                  Batal Edit
+                </button>
+              )}
+              <button onClick={handleSaveBlog} disabled={isSaving} className="px-8 py-2.5 bg-gray-900 text-white text-sm font-bold rounded hover:bg-black transition-colors disabled:opacity-50">
+                {isSaving 
+                  ? "Menyimpan..." 
+                  : (editId 
+                      ? "Perbarui Artikel" 
+                      : (isAdminOrOwner ? "Terbitkan Artikel" : "Ajukan Artikel (Review)")
+                    )
+                }
+              </button>
+            </div>
+          </>
+        ) : (
+          
+          /* KONDISI TAB MANAGE BLOG (HANYA BISA DIAKSES JIKA ADMIN / OWNER) */
+          <div className="flex-1 overflow-hidden p-6 bg-[#f4f2ee]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+              
+              {/* KOLOM KIRI (APPROVAL BLOG) */}
+              <div className="lg:col-span-5 flex flex-col h-full border border-red-200 rounded-xl overflow-hidden bg-white shadow-md">
+                <div className="bg-red-50 px-4 py-3 border-b border-red-200 shrink-0">
+                  <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Approval Blog</span>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                  {pendingBlogs.length > 0 ? (
+                    pendingBlogs.map((item) => (
+                      <div key={item.objectId} className="p-4 border border-gray-100 rounded-lg flex justify-between items-center shadow-sm hover:border-red-300 transition-colors">
+                        <div>
+                          <p className="text-sm font-bold text-gray-800 mb-1">{item.title}</p>
+                          <p className="text-[10px] text-gray-500 font-medium">Oleh: {item.author || "User"}</p>
+                        </div>
+                        <button className="px-4 py-2 bg-[#800000] text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-900 transition-colors shadow-sm">
+                          Full Review
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <span className="text-xs font-medium">Belum ada pengajuan artikel baru...</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+                  <button 
+                    onClick={() => setPendingPage(p => Math.max(1, p - 1))} 
+                    disabled={pendingPage === 1}
+                    className="px-4 py-1.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-md hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs text-gray-500 font-medium">Page {pendingPage} of {totalPendingPages}</span>
+                  <button 
+                    onClick={() => setPendingPage(p => Math.min(totalPendingPages, p + 1))} 
+                    disabled={pendingPage === totalPendingPages}
+                    className="px-4 py-1.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-md hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+
+              {/* KOLOM KANAN (MANAGE BLOG) */}
+              <div className="lg:col-span-7 flex flex-col h-full border border-blue-200 rounded-xl overflow-hidden bg-white shadow-md">
+                <div className="bg-blue-50 px-4 py-3 border-b border-blue-200 shrink-0">
+                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Manage Blog</span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 relative">
+                  {isLoadingBlogs ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+                      <span className="animate-pulse font-bold text-blue-600">Memuat Data...</span>
+                    </div>
+                  ) : currentPublished.length > 0 ? (
+                    currentPublished.map((blog) => (
+                      <div key={blog.objectId} className="p-4 border border-gray-100 rounded-lg flex justify-between items-center shadow-sm hover:border-blue-300 transition-colors">
+                        <div>
+                          <p className="text-sm font-bold text-gray-800 mb-1 line-clamp-1 pr-4">{blog.title}</p>
+                          <div className="flex gap-2 items-center">
+                            <span className="text-[9px] bg-gray-900 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                              {blog.category}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-medium">{blog.publishDate || "Tanggal tidak diketahui"}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => handleEditClick(blog)} className="px-4 py-2 bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase tracking-widest rounded hover:bg-yellow-200 transition-colors shadow-sm">
+                            Edit
+                          </button>
+                          <button onClick={() => handleDeleteClick(blog.objectId)} className="px-4 py-2 bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-widest rounded hover:bg-red-200 transition-colors shadow-sm">
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+                      <span className="text-xs font-medium">Data blog Anda masih kosong.</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+                  <button 
+                    onClick={() => setPublishedPage(p => Math.max(1, p - 1))}
+                    disabled={publishedPage === 1}
+                    className="px-4 py-1.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-md hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs text-gray-500 font-medium">Page {publishedPage} of {totalPublishedPages}</span>
+                  <button 
+                    onClick={() => setPublishedPage(p => Math.min(totalPublishedPages, p + 1))}
+                    disabled={publishedPage === totalPublishedPages}
+                    className="px-4 py-1.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-md hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
