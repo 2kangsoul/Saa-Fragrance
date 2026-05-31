@@ -112,10 +112,10 @@ export default function DesktopActions(props: DesktopActionsProps) {
             Sign in
           </Link>
           
-          {/* --- PERBAIKAN: Link Register diubah menjadi Button Modal --- */}
+          {/* --- PERBAIKAN: Menambahkan cursor-pointer di sini --- */}
           <button
             onClick={() => setIsRegisterModalOpen && setIsRegisterModalOpen(true)}
-            className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
+            className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors cursor-pointer"
           >
             Register
           </button>
