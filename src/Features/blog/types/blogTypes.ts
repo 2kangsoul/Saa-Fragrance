@@ -7,6 +7,7 @@ export interface BlogPost {
   category: string;
   imageUrl: string;
   content: string;
-  imageUrl2?: string; // Tambahkan ini
-  imageUrl3?: string; // Tambahkan ini
+  imageUrl2?: string; // Tambahkan ini (opsional)
+  imageUrl3?: string; // Tambahkan ini (opsional)
+  approval?: boolean; // <-- TAMBAHAN WAJIB: Agar layar tidak putih crash!
 }

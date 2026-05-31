@@ -33,6 +33,7 @@ export const useBlog = () => {
           imageUrl: item.imageUrl,
           imageUrl2: item.imageUrl2, // <-- TAMBAHAN
           imageUrl3: item.imageUrl3, // <-- TAMBAHAN
+          approval: item.approval, // <-- INI YANG HARUS DITAMBAHKAN AGAR TIDAK KOSONG
           content: item.content, 
         }));
 
