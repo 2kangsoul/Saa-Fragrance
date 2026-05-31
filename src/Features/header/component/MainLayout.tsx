@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useMainLayout } from "../hooks/useMainLayout";
 import AdminManagerModal from "../../adminmanage/AdminManagerModal";
 import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal";
-import BlogManagerModal from "../../blogmanage/BlogManagerModal"
+import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 export default function MainLayout() {
   const {
@@ -63,7 +63,7 @@ export default function MainLayout() {
               </span>
 
               {/* LOGIKA ROLE UNTUK DESKTOP */}
-              {(user?.role === "owner" || user?.role === "admin") ? (
+              {user?.role === "owner" || user?.role === "admin" ? (
                 // Tampilan untuk Owner / Admin (Pakai Dropdown)
                 <div className="relative">
                   <button
@@ -78,7 +78,12 @@ export default function MainLayout() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
 
@@ -93,7 +98,7 @@ export default function MainLayout() {
                       >
                         📦 Manage Parfume
                       </button>
-                      
+
                       <button
                         onClick={() => {
                           setIsManageMenuOpen(false);
@@ -159,12 +164,34 @@ export default function MainLayout() {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           )}
         </button>
@@ -172,13 +199,25 @@ export default function MainLayout() {
         {/* MENU MOBILE */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 w-full bg-[#f4f2ee]/95 backdrop-blur-md shadow-md border-t border-gray-200 flex flex-col px-6 py-6 gap-4 transition-all z-50">
-            <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
+            <Link
+              to="/products"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
+            >
               Products
             </Link>
-            <Link to="/team" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
+            <Link
+              to="/team"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
+            >
               Team
             </Link>
-            <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 font-medium hover:text-gray-500 transition-colors">
+            <Link
+              to="/aboutus"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
+            >
               About Us
             </Link>
 
@@ -191,23 +230,23 @@ export default function MainLayout() {
                 </span>
 
                 {/* LOGIKA ROLE UNTUK MOBILE */}
-                {(user?.role === "owner" || user?.role === "admin") ? (
+                {user?.role === "owner" || user?.role === "admin" ? (
                   // Menu Mobile untuk Owner/Admin
                   <div className="flex flex-col gap-3 pl-3 border-l-2 border-gray-300">
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        setIsPerfumeModalOpen(true); 
+                        setIsPerfumeModalOpen(true);
                       }}
                       className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
                     >
                       📦 Manage Parfume
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        setIsBlogModalOpen(true); 
+                        setIsBlogModalOpen(true);
                       }}
                       className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
                     >
@@ -231,7 +270,7 @@ export default function MainLayout() {
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      setIsBlogModalOpen(true); 
+                      setIsBlogModalOpen(true);
                     }}
                     className="w-max px-4 py-2 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md text-sm"
                   >
