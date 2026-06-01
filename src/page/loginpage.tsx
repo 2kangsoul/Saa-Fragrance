@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useNavigate, Navigate } from "react-router-dom"; // <-- Tambahkan Navigate di sini
+import { Navigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/useAuthStore";
-import backendlessApi from "../config/api" // Sesuaikan path ini dengan folder Anda
+import backendlessApi from "../config/api"; // Sesuaikan path ini dengan folder Anda
 
 const loginSchema = z.object({
   email: z
@@ -21,9 +21,8 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Panggil setAuth DAN isAuthenticated dari Zustand
   const { setAuth, isAuthenticated } = useAuthStore();
 
@@ -37,26 +36,31 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const res = await backendlessApi.post('users/login', {
+      const res = await backendlessApi.post("users/login", {
         login: data.email,
         password: data.password,
       });
 
-      toast.success('Login user successfully');
+      toast.success("Login user successfully");
 
       setAuth({
-        name: res?.data?.name || data.email.split('@')[0],
+        name: res?.data?.name || data.email.split("@")[0],
         email: res?.data?.email,
         objectId: res?.data?.objectId,
-        userToken: res?.data['user-token'],
-        role: res?.data?.role || 'user', // GANTI JADI INI
+        userToken: res?.data["user-token"],
+        role: res?.data?.role || "user", // GANTI JADI INI
       });
+
+      // Pindah ke halaman utama dan MELAKUKAN FULL REFRESH (Force Reload)
+      // agar seluruh state aplikasi (termasuk deteksi Role Admin) ter-reset sempurna
+      window.location.href = "/";
       
-      // Pindah ke halaman utama dan timpa histori
-      navigate("/", { replace: true });
     } catch (error: any) {
       console.error("Login gagal", error);
-      toast.error(error.response?.data?.message || "Gagal login, periksa kembali email & password Anda");
+      toast.error(
+        error.response?.data?.message ||
+          "Gagal login, periksa kembali email & password Anda",
+      );
     }
   };
 
@@ -140,9 +144,14 @@ export default function LoginPage() {
                 {...register("rememberMe")}
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Remember me
+              </span>
             </label>
-            <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-500">
+            <a
+              href="#"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-500"
+            >
               Lupa Password?
             </a>
           </div>

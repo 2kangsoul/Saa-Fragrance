@@ -1,4 +1,3 @@
-import React from "react";
 import type { PerfumeManagerModalProps } from "../types/types";
 import { usePerfumeManager } from "../hooks/usePerfumeManager";
 import PerfumeForm from "./PerfumeForm";
