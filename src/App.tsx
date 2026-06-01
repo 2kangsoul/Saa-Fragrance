@@ -3,7 +3,7 @@ import { Toaster } from "react-hot-toast";
 
 // Import Layout
 import AuthLayout from "./layout/AuthLayout";
-import MainLayout from "./Features/header/component/MainLayout"; // <-- TAMBAHAN IMPORT MAINLAYOUT
+import MainLayout from "./Features/header/component/MainLayout"; 
 
 // Import Halaman
 import Home from "./Features/landingpages/components/Home";
@@ -13,6 +13,7 @@ import Team from "./page/Team";
 import Blog from "./page/Blog";
 import ChatBot from "./Features/chatbot/Components/ChatBot";
 import NicheGuide from "./page/niche";
+import NotFound from "./page/NotFound"; // <-- IMPORT HALAMAN NOT FOUND
 
 function App() {
   return (
@@ -33,6 +34,9 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/products" element={<Products />} />
           </Route>
+          
+          {/* RUTE FALLBACK UNTUK HALAMAN TIDAK DITEMUKAN */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
 
