@@ -9,19 +9,21 @@ import {
   generateBlogAIApi,
 } from "../api/blogManagerApi";
 
+// IMPORT KEDUA HOOK BARU KITA
+import { useBlogAuth } from "./useBlogAuth";
+import { useBlogPagination } from "./useBlogPagination";
+
 export const useBlogManager = (isOpen: boolean) => {
   const [activeTab, setActiveTab] = useState<"ai" | "manage">("ai");
-  const [pendingPage, setPendingPage] = useState(1);
-  const [publishedPage, setPublishedPage] = useState(1);
 
-  // STATE UNTUK OTORISASI ROLE & STATUS
-  const [userRole, setUserRole] = useState<string>("user");
-  const [isEditingPending, setIsEditingPending] = useState(false);
+  // 1. Tarik Data Otorisasi dari Hook useBlogAuth
+  const { isAdminOrOwner } = useBlogAuth(isOpen);
 
   // STATE UNTUK DATA ASLI DARI BACKENDLESS
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [isEditingPending, setIsEditingPending] = useState(false);
 
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
@@ -38,7 +40,17 @@ export const useBlogManager = (isOpen: boolean) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const isAdminOrOwner = userRole === "owner" || userRole === "admin";
+  // 2. Tarik Data Paginasi dari Hook useBlogPagination
+  const {
+    pendingPage,
+    setPendingPage,
+    publishedPage,
+    setPublishedPage,
+    currentPending,
+    totalPendingPages,
+    currentPublished,
+    totalPublishedPages,
+  } = useBlogPagination(blogs);
 
   const fetchBlogs = async () => {
     setIsLoadingBlogs(true);
@@ -57,19 +69,6 @@ export const useBlogManager = (isOpen: boolean) => {
     if (isOpen) {
       fetchBlogs();
       setActiveTab("ai");
-
-      try {
-        const userStr = localStorage.getItem("user");
-        const authStr = localStorage.getItem("auth-storage");
-
-        if (userStr) {
-          setUserRole(JSON.parse(userStr)?.role || "user");
-        } else if (authStr) {
-          setUserRole(JSON.parse(authStr)?.state?.user?.role || "user");
-        }
-      } catch (error) {
-        console.error("Gagal membaca role user", error);
-      }
     }
   }, [isOpen]);
 
@@ -99,18 +98,12 @@ export const useBlogManager = (isOpen: boolean) => {
   };
 
   const handleDeleteClick = async (objectId: string) => {
-    if (
-      !window.confirm(
-        "Apakah Anda yakin ingin menghapus/menolak artikel ini secara permanen?",
-      )
-    )
-      return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus/menolak artikel ini secara permanen?")) return;
 
     const loadingToast = toast.loading("Memproses...");
     try {
       await deleteBlogApi(objectId);
       toast.success("Artikel berhasil dihapus!", { id: loadingToast });
-
       setTimeout(() => {
         fetchBlogs();
         window.dispatchEvent(new Event("refreshBlogs"));
@@ -155,6 +148,27 @@ export const useBlogManager = (isOpen: boolean) => {
       toast.error("Judul dan Konten tidak boleh kosong!");
       return;
     }
+
+    // =========================================================
+    // VALIDASI KONTEN: MENCEGAH PENYIMPANAN JIKA DITOLAK AI
+    // =========================================================
+    const lowerContent = formData.content.toLowerCase();
+    const rejectedKeywords = [
+      "maaf, tapi sebagai ai fragrance",
+      "saya hanya bisa membantu",
+      "di luar topik",
+      "saya tidak bisa membantu",
+      "tidak dapat memberikan informasi",
+      "bukan asisten",
+    ];
+
+    const isRejectedByAI = rejectedKeywords.some(keyword => lowerContent.includes(keyword));
+
+    if (isRejectedByAI) {
+      toast.error("Gagal menyimpan: Konten ditolak karena di luar topik parfum.", { duration: 5000 });
+      return; // Hentikan fungsi
+    }
+    // =========================================================
 
     setIsSaving(true);
     const loadingToast = toast.loading(
@@ -247,24 +261,6 @@ export const useBlogManager = (isOpen: boolean) => {
       content: "",
     });
   };
-
-  // LOGIKA PAGINASI (Diekstrak dari komponen agar UI lebih bersih)
-  const pendingBlogs = blogs.filter(
-    (b) => b.approval === false || b.approval == null,
-  );
-  const publishedBlogs = blogs.filter((b) => b.approval === true);
-
-  const totalPendingPages = Math.ceil(pendingBlogs.length / 5) || 1;
-  const currentPending = pendingBlogs.slice(
-    (pendingPage - 1) * 5,
-    pendingPage * 5,
-  );
-
-  const totalPublishedPages = Math.ceil(publishedBlogs.length / 4) || 1;
-  const currentPublished = publishedBlogs.slice(
-    (publishedPage - 1) * 4,
-    publishedPage * 4,
-  );
 
   return {
     activeTab,
