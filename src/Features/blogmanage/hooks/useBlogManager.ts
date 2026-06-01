@@ -9,17 +9,14 @@ import {
   generateBlogAIApi,
 } from "../api/blogManagerApi";
 
-// IMPORT KEDUA HOOK BARU KITA
 import { useBlogAuth } from "./useBlogAuth";
 import { useBlogPagination } from "./useBlogPagination";
 
 export const useBlogManager = (isOpen: boolean) => {
   const [activeTab, setActiveTab] = useState<"ai" | "manage">("ai");
 
-  // 1. Tarik Data Otorisasi dari Hook useBlogAuth
   const { isAdminOrOwner } = useBlogAuth(isOpen);
 
-  // STATE UNTUK DATA ASLI DARI BACKENDLESS
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -40,7 +37,6 @@ export const useBlogManager = (isOpen: boolean) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // 2. Tarik Data Paginasi dari Hook useBlogPagination
   const {
     pendingPage,
     setPendingPage,
@@ -151,22 +147,28 @@ export const useBlogManager = (isOpen: boolean) => {
 
     // =========================================================
     // VALIDASI KONTEN: MENCEGAH PENYIMPANAN JIKA DITOLAK AI
+    // Diperbarui dengan kata kunci yang lebih banyak dan pintar
     // =========================================================
     const lowerContent = formData.content.toLowerCase();
     const rejectedKeywords = [
-      "maaf, tapi sebagai ai fragrance",
-      "saya hanya bisa membantu",
+      "sebagai asisten ai",
+      "sebagai model bahasa",
+      "sebagai ai",
+      "saya tidak bisa",
+      "saya tidak dapat",
+      "saya tidak memiliki",
+      "maaf, saya tidak",
       "di luar topik",
-      "saya tidak bisa membantu",
-      "tidak dapat memberikan informasi",
-      "bukan asisten",
+      "hanya dapat membantu",
+      "hanya berfokus",
+      "tidak relevan"
     ];
 
     const isRejectedByAI = rejectedKeywords.some(keyword => lowerContent.includes(keyword));
 
     if (isRejectedByAI) {
-      toast.error("Gagal menyimpan: Konten ditolak karena di luar topik parfum.", { duration: 5000 });
-      return; // Hentikan fungsi
+      toast.error("Gagal menyimpan: Konten ditolak karena AI tidak bisa membahas topik tersebut.", { duration: 5000 });
+      return; // Langsung hentikan fungsi, tidak akan masuk database
     }
     // =========================================================
 
@@ -239,8 +241,9 @@ export const useBlogManager = (isOpen: boolean) => {
 
       if (isAdminOrOwner) setActiveTab("manage");
     } catch (error: any) {
-      console.error("Database Error:", error);
-      toast.error("Gagal menyimpan ke database.", { id: loadingToast });
+      console.error("Database Error Detail:", error.response?.data || error);
+      const errorMsg = error.response?.data?.message || error.message || "Kesalahan jaringan/server";
+      toast.error(`Gagal menyimpan: ${errorMsg}`, { id: loadingToast, duration: 6000 });
     } finally {
       setIsSaving(false);
     }
