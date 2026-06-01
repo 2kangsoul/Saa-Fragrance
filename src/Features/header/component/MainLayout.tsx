@@ -2,14 +2,14 @@ import { useState } from "react"; // <-- TAMBAHAN: Import useState
 import { Outlet } from "react-router-dom";
 import { useMainLayout } from "../hooks/useMainLayout";
 
-import AdminManagerModal from "../../adminmanage/AdminManagerModal";
+import AdminManagerModal from "../../adminmanage/component/AdminManagerModal";
 import PerfumeManagerModal from "../../productmanage/component/PerfumeManagerModal";
 import BlogManagerModal from "../../blogmanage/component/BlogManagerModal";
 
 // --- TAMBAHAN: Import Register Modal dari folder Anda ---
 import RegisterModal from "../../registermodal/RegisterModal";
 
-import Header from "../Header"
+import Header from "../Header";
 import FooterLayout from "../FooterLayout";
 
 export default function MainLayout() {
@@ -21,9 +21,9 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-[#f4f2ee]">
       {/* Oper state tambahan setIsRegisterModalOpen ke Header */}
-      <Header 
-        {...layoutState} 
-        setIsRegisterModalOpen={setIsRegisterModalOpen} 
+      <Header
+        {...layoutState}
+        setIsRegisterModalOpen={setIsRegisterModalOpen}
       />
 
       <main>
@@ -47,7 +47,7 @@ export default function MainLayout() {
       />
 
       {/* --- TAMBAHAN: Render Register Modal di sini --- */}
-      <RegisterModal 
+      <RegisterModal
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
       />
