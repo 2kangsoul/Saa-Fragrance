@@ -11,7 +11,7 @@ const ChatBot: React.FC = () => {
   const quickReplies = [
     "Cari Parfum Siang",
     "Parfum Beast Mode",
-    "Aroma Manis & Elegan"
+    "Aroma Manis & Elegan",
   ];
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const ChatBot: React.FC = () => {
     if (!text) return null;
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
+      if (part.startsWith("**") && part.endsWith("**")) {
         return (
           <strong key={index} className="font-bold text-gray-900">
             {part.slice(2, -2)}
@@ -56,7 +56,10 @@ const ChatBot: React.FC = () => {
         <div className="w-80 h-96 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col mb-4 overflow-hidden transform transition-all">
           <div className="bg-gray-900 text-white p-3 flex justify-between items-center">
             <span className="font-semibold text-sm">Fragrance AI</span>
-            <button onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white">
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-300 hover:text-white"
+            >
               ✕
             </button>
           </div>
@@ -64,10 +67,15 @@ const ChatBot: React.FC = () => {
           <div className="flex-1 p-4 overflow-y-auto bg-[#f8f7f4] flex flex-col gap-3">
             {messages.map((m, i) => {
               if (m.role === "system") return null;
-              
+
               return (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`p-2.5 max-w-[80%] rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}>
+                <div
+                  key={i}
+                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`p-2.5 max-w-[80%] rounded-xl text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-gray-900 text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm"}`}
+                  >
                     {formatText(m.content)}
                   </div>
                 </div>
@@ -107,8 +115,8 @@ const ChatBot: React.FC = () => {
               className="input input-sm flex-1 bg-[#f8f7f4] focus:outline-none focus:border-gray-400 rounded-lg text-xs px-3"
               disabled={isLoading}
             />
-            <button 
-              onClick={handleSend} 
+            <button
+              onClick={handleSend}
               disabled={isLoading || !input.trim()}
               className="btn btn-sm bg-gray-900 text-white border-none rounded-lg hover:bg-black disabled:bg-gray-300"
             >
@@ -118,14 +126,25 @@ const ChatBot: React.FC = () => {
         </div>
       )}
 
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`btn btn-circle w-14 h-14 bg-gray-900 text-white border-none shadow-2xl hover:bg-black transition-transform ${isOpen ? "scale-0" : "scale-100"} absolute bottom-0 right-0`}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-      </button>
+      {/* Menampilkan Icon Chat HANYA ketika ChatBox tertutup (!isOpen) sehingga langsung hilang saat diklik */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-14 h-14 bg-transparent border-none p-0 cursor-pointer shadow-2xl hover:scale-105 transition-transform absolute bottom-0 right-0 rounded-full flex items-center justify-center"
+        >
+          {/* Awan Chat (Chat Bubble) - Dikembalikan ke posisi absolut atas kiri */}
+          <div className="absolute right-[60px] bottom-[45px] px-3 py-1.5 bg-white text-gray-800 text-xs font-bold rounded-xl shadow-lg border border-gray-100 whitespace-nowrap rounded-br-none">
+            Ai Fragrance
+          </div>
+          
+          {/* Gambar Bunder */}
+          <img
+            src="/LogoSquare.png"
+            alt="Chat Icon"
+            className="w-full h-full object-cover rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+          />
+        </button>
+      )}
     </div>
   );
 };
