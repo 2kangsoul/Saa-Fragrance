@@ -1,21 +1,25 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FAFAFA] dark:bg-[#161722] px-4 transition-colors duration-300">
       <div className="text-center">
-        {/* Angka 404 Besar */}
-        <h1 className="text-9xl font-black text-gray-200 dark:text-[#25273D]">
-          404
-        </h1>
-        
+        {/* Gambar 404 dari folder public */}
+        <div className="mb-6 flex justify-center">
+          <img
+            src="/Logo404.png"
+            alt="Not Found"
+            className="w-64 h-auto object-contain"
+          />
+        </div>
+
         {/* Pesan Error */}
         <h2 className="mt-4 text-3xl font-bold text-gray-800 dark:text-white sm:text-4xl">
           Oops! Halaman tidak ditemukan.
         </h2>
         <p className="mt-4 mb-8 text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-          Maaf, halaman yang Anda cari mungkin telah dihapus, diubah namanya, atau memang tidak pernah ada.
+          Maaf, halaman yang Anda cari mungkin telah dihapus, diubah namanya,
+          atau memang tidak pernah ada.
         </p>
 
         {/* Tombol Kembali ke Home */}
