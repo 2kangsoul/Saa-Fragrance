@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 // Pastikan path import ini sesuai dengan lokasi file api.ts Anda
-import  backendlessApi  from "../../config/api" 
+import backendlessApi from "../../config/api" 
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -36,9 +36,35 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
     try {
       // Mengirim perintah ke Backendless untuk meneruskan email via Gmail Anda
       await backendlessApi.post('messaging/email', {
-        subject: "Kode Verifikasi OTP - Saa Fragrance",
+        subject: "Kode Verifikasi (OTP) - Saa Fragrance",
         bodyparts: {
-          textmessage: `Halo ${name},\n\nKode OTP Anda adalah: ${randomOtp}\n\nJangan berikan kode ini kepada siapapun.`
+          textmessage: `Halo ${name},\n\nTerima kasih telah mendaftar di Saa Fragrance!\n\nKode OTP Anda adalah: ${randomOtp}\n\nDemi keamanan akun Anda, mohon tidak membagikan kode ini kepada siapapun.\n\nSalam hangat,\nTim Saa Fragrance`,
+          htmlmessage: `
+            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #eaeaea; border-radius: 12px; background-color: #ffffff;">
+              <h2 style="color: #111; text-align: center; margin-bottom: 20px;">Verifikasi Akun</h2>
+              <p>Halo <strong>${name}</strong>,</p>
+              <p>Terima kasih telah mendaftar di <strong>Saa Fragrance</strong>! Kami sangat senang menyambut Anda.</p>
+              <p>Untuk menyelesaikan proses pembuatan akun, silakan masukkan 6 digit kode verifikasi (OTP) berikut pada halaman web:</p>
+              
+              <div style="text-align: center; margin: 35px 0;">
+                <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #111; background-color: #f4f2ee; padding: 15px 30px; border-radius: 8px; display: inline-block;">
+                  ${randomOtp}
+                </span>
+              </div>
+              
+              <p style="color: #d9534f; font-size: 14px; background-color: #fdf2f2; padding: 10px; border-left: 4px solid #d9534f;">
+                <strong>PENTING:</strong> Demi keamanan akun Anda, mohon untuk <strong>tidak membagikan kode ini</strong> kepada siapa pun. Kode ini hanya berlaku untuk sesi pendaftaran ini.
+              </p>
+              
+              <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+              <p style="font-size: 12px; color: #888; text-align: center;">
+                Jika Anda tidak merasa melakukan pendaftaran ini, silakan abaikan email ini.
+              </p>
+              <p style="font-size: 14px; text-align: center; margin-top: 20px;">
+                Salam wangi,<br/><strong>Tim Saa Fragrance</strong>
+              </p>
+            </div>
+          `
         },
         to: [email]
       });
