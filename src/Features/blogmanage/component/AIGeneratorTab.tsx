@@ -73,8 +73,9 @@ export default function AIGeneratorTab({
                   name="author"
                   value={formData.author}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-gray-900 text-sm"
-                  placeholder="Nama Anda"
+                  disabled // <-- UBAH: Kunci input agar tidak bisa diketik
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500 cursor-not-allowed select-none" // <-- UBAH: Jadikan abu-abu visualnya
+                  placeholder="Mengambil data..."
                 />
               </div>
             </div>

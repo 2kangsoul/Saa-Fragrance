@@ -11,11 +11,13 @@ import {
 
 import { useBlogAuth } from "./useBlogAuth";
 import { useBlogPagination } from "./useBlogPagination";
+import { useAuthStore } from "../../../stores/useAuthStore" // <-- TAMBAHAN: Import Auth Store
 
 export const useBlogManager = (isOpen: boolean) => {
   const [activeTab, setActiveTab] = useState<"ai" | "manage">("ai");
 
   const { isAdminOrOwner } = useBlogAuth(isOpen);
+  const { user } = useAuthStore(); // <-- TAMBAHAN: Ambil data user yang sedang login
 
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
@@ -26,7 +28,7 @@ export const useBlogManager = (isOpen: boolean) => {
     title: "",
     category: "Niche",
     excerpt: "",
-    author: "",
+    author: user?.name || "", // <-- UBAH: Otomatis terisi nama user
     imageUrl: "",
     imageUrl2: "",
     imageUrl3: "",
@@ -65,8 +67,10 @@ export const useBlogManager = (isOpen: boolean) => {
     if (isOpen) {
       fetchBlogs();
       setActiveTab("ai");
+      // <-- TAMBAHAN: Memastikan nama terisi saat modal dibuka
+      setFormData((prev) => ({ ...prev, author: user?.name || "" })); 
     }
-  }, [isOpen]);
+  }, [isOpen, user]); // <-- TAMBAHAN: Tambahkan user ke dependency array
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -81,7 +85,7 @@ export const useBlogManager = (isOpen: boolean) => {
       title: blog.title || "",
       category: blog.category || "Niche",
       excerpt: blog.excerpt || "",
-      author: blog.author || "",
+      author: blog.author || user?.name || "", // <-- UBAH: Gunakan nama original blog, atau nama user jika kosong
       imageUrl: blog.imageUrl || "",
       imageUrl2: blog.imageUrl2 || "",
       imageUrl3: blog.imageUrl3 || "",
@@ -217,7 +221,7 @@ export const useBlogManager = (isOpen: boolean) => {
         title: "",
         category: "Niche",
         excerpt: "",
-        author: "",
+        author: user?.name || "", // <-- UBAH: Reset ke nama user lagi
         imageUrl: "",
         imageUrl2: "",
         imageUrl3: "",
@@ -249,7 +253,7 @@ export const useBlogManager = (isOpen: boolean) => {
       title: "",
       category: "Niche",
       excerpt: "",
-      author: "",
+      author: user?.name || "", // <-- UBAH: Reset ke nama user lagi
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",

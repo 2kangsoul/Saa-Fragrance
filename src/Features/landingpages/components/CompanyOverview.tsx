@@ -1,14 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 // Menggunakan 'import type' untuk memastikan interface dari file .tsx terbaca sempurna tanpa error
-import type { CompanyOverviewProps } from '../types/companyOverviewTypes';
+import type { CompanyOverviewProps } from "../types/companyOverviewTypes";
 
 const CompanyOverview: React.FC<CompanyOverviewProps> = ({
   title = "Our Story & Culture",
   description1 = "Saa Fragrance lahir dari semangat untuk menciptakan wewangian yang tidak hanya harum, tetapi juga memiliki jiwa. Latar belakang kami berakar pada tradisi perfumery klasik yang dipadukan dengan sentuhan inovasi modern untuk gaya hidup masa kini.",
   description2 = "Tim kami terdiri dari para artisan dan ahli parfum berdedikasi yang menjunjung tinggi budaya kerja kolaboratif, ketelitian, dan eksplorasi. Kami believe bahwa setiap tetes wewangian adalah sebuah mahakarya yang mencerminkan cinta dan dedikasi kami.",
   buttonText = "Kenali Kami Lebih Dekat",
-  buttonLink = "/about-us",
+  buttonLink = "/aboutus",
   imageSrc = "/SaaFragrancexLogo.png",
   imageAlt = "Saa Fragrance Team and Culture",
 }) => {
@@ -23,7 +23,6 @@ const CompanyOverview: React.FC<CompanyOverviewProps> = ({
       {/* Jarak disesuaikan agar menyatu rapi dengan seksi lain */}
       <div className="relative z-10 max-w-3xl mx-auto px-3 -mt-8">
         <div className="flex flex-col md:flex-row items-center gap-5">
-          
           {/* KONTEN TEKS (Kiri) */}
           <div className="w-full md:w-1/2 text-left">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 tracking-wide">
@@ -58,7 +57,6 @@ const CompanyOverview: React.FC<CompanyOverviewProps> = ({
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
             </div>
           </div>
-          
         </div>
       </div>
     </section>

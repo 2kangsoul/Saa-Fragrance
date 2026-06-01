@@ -13,6 +13,7 @@ import Team from "./page/Team";
 import Blog from "./page/Blog";
 import ChatBot from "./Features/chatbot/Components/ChatBot";
 import NicheGuide from "./page/niche";
+import AboutUs from "./page/AboutUs";
 import NotFound from "./page/NotFound"; // <-- IMPORT HALAMAN NOT FOUND
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/niche" element={<NicheGuide />} />
+          <Route path="/aboutus" element={<AboutUs />} />
 
           {/* Rute Terlindungi (Wajib Login, dicegat oleh AuthLayout) */}
           <Route element={<AuthLayout />}>
