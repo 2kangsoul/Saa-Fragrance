@@ -147,27 +147,20 @@ export const useBlogManager = (isOpen: boolean) => {
 
     // =========================================================
     // VALIDASI KONTEN: MENCEGAH PENYIMPANAN JIKA DITOLAK AI
-    // Diperbarui dengan kata kunci yang lebih banyak dan pintar
+    // Berpatokan langsung pada kalimat penolakan baku dari AI
     // =========================================================
     const lowerContent = formData.content.toLowerCase();
+    
+    // Menggunakan potongan kalimat pasti yang diberikan AI Anda
     const rejectedKeywords = [
-      "sebagai asisten ai",
-      "sebagai model bahasa",
-      "sebagai ai",
-      "saya tidak bisa",
-      "saya tidak dapat",
-      "saya tidak memiliki",
-      "maaf, saya tidak",
-      "di luar topik",
-      "hanya dapat membantu",
-      "hanya berfokus",
-      "tidak relevan"
+      "mohon maaf, the scent journal secara eksklusif hanya menerbitkan kampanye dan artikel seputar dunia wewangian",
+      "the scent journal secara eksklusif hanya menerbitkan" // Potongan cadangan agar lebih kebal
     ];
 
     const isRejectedByAI = rejectedKeywords.some(keyword => lowerContent.includes(keyword));
 
     if (isRejectedByAI) {
-      toast.error("Gagal menyimpan: Konten ditolak karena AI tidak bisa membahas topik tersebut.", { duration: 5000 });
+      toast.error("Gagal menyimpan: Topik ditolak karena The Scent Journal hanya membahas wewangian.", { duration: 5000 });
       return; // Langsung hentikan fungsi, tidak akan masuk database
     }
     // =========================================================
