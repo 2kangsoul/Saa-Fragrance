@@ -7,7 +7,7 @@ interface UserData {
   email?: string;
   objectId: string; 
   userToken: string; 
-  role?: string; // <-- UBAH: Sekarang menggunakan role
+  role?: string; 
 }
 
 interface AuthState {
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
               name: response.data.name || currentUser.name,
               email: response.data.email,
               objectId: response.data.objectId,
-              role: response.data.role || 'user', // <-- UBAH: Mengambil data role
+              role: response.data.role || 'user',
             }
           });
 
@@ -56,7 +56,6 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error("❌ [AuthStore] Gagal mengambil data:", error);
           
-          // <-- PERBAIKAN: Jika token expired/mati (401 Unauthorized), bersihkan sesi
           if (error.response?.status === 401 || error.response?.status === 400) {
             get().logout();
           }
@@ -70,7 +69,8 @@ export const useAuthStore = create<AuthState>()(
         user: state.user ? {
           userToken: state.user.userToken,
           objectId: state.user.objectId, 
-          role: state.user.role, // <-- UBAH: Menyimpan role ke storage
+          role: state.user.role,
+          name: state.user.name, // <-- TAMBAHAN: Menyimpan name ke storage
         } : null,
       }),
     }
