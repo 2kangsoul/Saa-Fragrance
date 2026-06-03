@@ -22,7 +22,7 @@ function App() {
       <Toaster
         position="top-center" // atau posisi yang Anda pakai sebelumnya
         containerStyle={{
-          zIndex: 99999, // Memaksa toast selalu berada di lapisan paling depan
+          zIndex: 999999, // Memaksa toast selalu berada di lapisan paling depan
         }}
       />
 
