@@ -81,7 +81,7 @@ export default function AIGeneratorTab({
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                Ringkasan (Excerpt)
+                Ringkasan (Excerpt) Maksimal 250 Karakter
               </label>
               <textarea
                 name="excerpt"

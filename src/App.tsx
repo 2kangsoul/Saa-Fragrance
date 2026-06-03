@@ -3,7 +3,7 @@ import { Toaster } from "react-hot-toast";
 
 // Import Layout
 import AuthLayout from "./layout/AuthLayout";
-import MainLayout from "./Features/header/component/MainLayout"; 
+import MainLayout from "./Features/header/component/MainLayout";
 
 // Import Halaman
 import Home from "./Features/landingpages/components/Home";
@@ -19,7 +19,12 @@ import NotFound from "./page/NotFound"; // <-- IMPORT HALAMAN NOT FOUND
 function App() {
   return (
     <>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center" // atau posisi yang Anda pakai sebelumnya
+        containerStyle={{
+          zIndex: 99999, // Memaksa toast selalu berada di lapisan paling depan
+        }}
+      />
 
       <Routes>
         {/* MainLayout membungkus SEMUA rute agar Header dan Footer selalu muncul */}
@@ -36,7 +41,7 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/products" element={<Products />} />
           </Route>
-          
+
           {/* RUTE FALLBACK UNTUK HALAMAN TIDAK DITEMUKAN */}
           <Route path="*" element={<NotFound />} />
         </Route>

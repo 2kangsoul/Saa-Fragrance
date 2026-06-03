@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backup Database
+*_export.json
+export.cjs
+user.json
+Product_export.json
+Blogs_export.json
