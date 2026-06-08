@@ -79,6 +79,13 @@ export default function MobileMenu(props: ExtendedMobileMenuProps) {
             Team
           </Link>
           <Link
+            to="/blog"
+            onClick={closeMenu}
+            className="text-gray-800 font-medium hover:text-gray-500 transition-colors"
+          >
+            Blog
+          </Link>
+           <Link
             to="/aboutus"
             onClick={closeMenu}
             className="text-gray-800 font-medium hover:text-gray-500 transition-colors"

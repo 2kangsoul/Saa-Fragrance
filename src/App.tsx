@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 // Import Layout
 import AuthLayout from "./layout/AuthLayout";
 import MainLayout from "./Features/header/component/MainLayout";
+import AdminLayout from "./layout/AdminLayout"; // <-- IMPORT ADMIN LAYOUT
 
 // Import Halaman
 import Home from "./Features/landingpages/components/Home";
@@ -14,20 +15,35 @@ import Blog from "./page/Blog";
 import ChatBot from "./Features/chatbot/Components/ChatBot";
 import NicheGuide from "./page/niche";
 import AboutUs from "./page/AboutUs";
-import NotFound from "./page/NotFound"; // <-- IMPORT HALAMAN NOT FOUND
+import NotFound from "./page/NotFound";
+import Dashboard from "../src/page/Dashboard"; // <-- IMPORT DASHBOARD ADMIN (Pastikan path-nya sesuai folder Anda)
 
 function App() {
   return (
     <>
       <Toaster
-        position="top-center" // atau posisi yang Anda pakai sebelumnya
+        position="top-center"
         containerStyle={{
-          zIndex: 999999, // Memaksa toast selalu berada di lapisan paling depan
+          zIndex: 999999,
         }}
       />
 
       <Routes>
-        {/* MainLayout membungkus SEMUA rute agar Header dan Footer selalu muncul */}
+        {/* =========================================
+            RUTE KHUSUS ADMIN (Terpisah dari MainLayout)
+            ========================================= */}
+        <Route
+          path="/admin"
+          element={
+            <AdminLayout>
+              <Dashboard />
+            </AdminLayout>
+          }
+        />
+
+        {/* =========================================
+            RUTE PUBLIK & PENGGUNA BIASA (MainLayout)
+            ========================================= */}
         <Route element={<MainLayout />}>
           {/* Rute Bebas (Bisa diakses tanpa login) */}
           <Route path="/" element={<Home />} />

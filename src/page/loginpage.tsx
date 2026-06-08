@@ -12,9 +12,7 @@ const loginSchema = z.object({
     .string()
     .min(1, { message: "Email tidak boleh kosong" })
     .email({ message: "Format email tidak valid" }),
-  password: z
-    .string()
-    .min(6, { message: "Password minimal harus 6 karakter" }),
+  password: z.string().min(6, { message: "Password minimal harus 6 karakter" }),
   rememberMe: z.boolean().optional(),
 });
 
@@ -43,18 +41,23 @@ export default function LoginPage() {
 
       toast.success("Login user successfully");
 
+      const userRole = res?.data?.role || "user";
+
       setAuth({
         name: res?.data?.name || data.email.split("@")[0],
         email: res?.data?.email,
         objectId: res?.data?.objectId,
         userToken: res?.data["user-token"],
-        role: res?.data?.role || "user", // GANTI JADI INI
+        role: userRole,
       });
 
       // Pindah ke halaman utama dan MELAKUKAN FULL REFRESH (Force Reload)
       // agar seluruh state aplikasi (termasuk deteksi Role Admin) ter-reset sempurna
-      window.location.href = "/";
-      
+      if (userRole === "admin" || userRole === "owner") {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
+      }
     } catch (error: any) {
       console.error("Login gagal", error);
       toast.error(
