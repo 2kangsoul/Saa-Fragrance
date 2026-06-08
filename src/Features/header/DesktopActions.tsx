@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { UseMainLayoutReturn } from "../header/types/MainLayout.types";
 
-// Menambahkan fungsi pop-up register ke dalam tipe props
+// Menambahkan fungsi pop-up register dan account ke dalam tipe props
 interface DesktopActionsProps extends UseMainLayoutReturn {
   setIsRegisterModalOpen?: (val: boolean) => void;
+  setIsAccountModalOpen?: (val: boolean) => void; // <-- Perbaikan baris 8
 }
 
 export default function DesktopActions(props: DesktopActionsProps) {
@@ -16,16 +18,56 @@ export default function DesktopActions(props: DesktopActionsProps) {
     setIsAdminModalOpen,
     setIsPerfumeModalOpen,
     setIsBlogModalOpen,
-    setIsRegisterModalOpen, // <-- TAMBAHAN UNTUK MODAL REGISTER
+    setIsRegisterModalOpen,
+    setIsAccountModalOpen, // <-- Perbaikan baris 20
   } = props;
+
+  // State lokal untuk mengontrol dropdown akun
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
   return (
     <div className="hidden lg:flex items-center gap-3 text-xs font-medium">
       {isAuthenticated ? (
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-800">
-            Hai, {user?.name}
-          </span>
+          
+          {/* --- BAGIAN YANG DIUBAH: Dropdown Hai, {user?.name} --- */}
+          <div className="relative">
+            <button
+              onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+              className="text-sm font-medium text-gray-800 hover:text-gray-600 flex items-center gap-1 cursor-pointer"
+            >
+              Hai, {user?.name}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {isAccountMenuOpen && (
+              <div className="absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50 flex flex-col">
+                <button
+                  onClick={() => {
+                    setIsAccountMenuOpen(false);
+                    if (setIsAccountModalOpen) setIsAccountModalOpen(true);
+                  }}
+                  className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium"
+                >
+                  ⚙️ Account Setting
+                </button>
+              </div>
+            )}
+          </div>
+          {/* --- AKHIR BAGIAN YANG DIUBAH --- */}
 
           {/* LOGIKA ROLE UNTUK DESKTOP */}
           {user?.role === "owner" || user?.role === "admin" ? (
@@ -112,9 +154,10 @@ export default function DesktopActions(props: DesktopActionsProps) {
             Sign in
           </Link>
           
-          {/* --- PERBAIKAN: Menambahkan cursor-pointer di sini --- */}
           <button
-            onClick={() => setIsRegisterModalOpen && setIsRegisterModalOpen(true)}
+            onClick={() =>
+              setIsRegisterModalOpen && setIsRegisterModalOpen(true)
+            }
             className="px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors cursor-pointer"
           >
             Register
