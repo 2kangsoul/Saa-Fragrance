@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import backendlessApi from "../../config/api"; // Sesuaikan path ini dengan lokasi file api.ts kamu
 
 interface SettingsAccountModalProps {
@@ -16,14 +16,39 @@ export default function SettingsAccountModal({
   const [phone, setPhone] = useState(user?.no_handphone || "");
   const [address, setAddress] = useState(user?.address || "");
   // Nilai yang tersimpan di DB — dipakai di biodata, tidak berubah saat user mengetik
-  const savedPhone = user?.no_handphone || "-";
-  const savedAddress = user?.address || "-";
+  const [savedPhone, setSavedPhone] = useState(user?.no_handphone || "-");
+  const [savedAddress, setSavedAddress] = useState(user?.address || "-");
+  const [savedName, setSavedName] = useState(user?.name || "-");
+  const [savedEmail, setSavedEmail] = useState(user?.email || "-");
   const [password, setPassword] = useState("");
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // State untuk menyimpan error per field
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // FIX: Setiap kali modal dibuka, fetch langsung dari Backendless agar biodata selalu fresh
+  useEffect(() => {
+    if (!isOpen) return;
+    const userId = user?.objectId || user?.id;
+    if (!userId) return;
+
+    backendlessApi
+      .get(`data/Users/${userId}`)
+      .then((res) => {
+        const data = res.data;
+        setSavedName(data.name || "-");
+        setSavedEmail(data.email || "-");
+        setSavedPhone(data.no_handphone || "-");
+        setSavedAddress(data.address || "-");
+        // Isi juga form dengan data terbaru dari DB
+        setPhone(data.no_handphone || "");
+        setAddress(data.address || "");
+      })
+      .catch(() => {
+        // Jika gagal fetch, tetap pakai data dari props
+      });
+  }, [isOpen, user?.objectId, user?.id]);
 
   if (!isOpen) return null;
 
@@ -250,25 +275,25 @@ export default function SettingsAccountModal({
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Name</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {user?.name || "-"}
+                {savedName}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Email</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {user?.email || "-"}
+                {savedEmail}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Phone</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {user?.no_handphone || "-"}
+                {savedPhone}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Address</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {user?.address || "-"}
+                {savedAddress}
               </p>
             </div>
           </div>
