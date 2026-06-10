@@ -144,6 +144,27 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
 
         {/* Body Modal */}
         <div className="p-6 space-y-4">
+          {/* Biodata Read-Only */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 space-y-2">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Biodata</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-16 shrink-0">Name</span>
+              <span className="text-sm font-medium text-gray-800">{user?.name || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-16 shrink-0">Email</span>
+              <span className="text-sm font-medium text-gray-800">{user?.email || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-16 shrink-0">Phone</span>
+              <span className="text-sm font-medium text-gray-800">{phone || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 w-16 shrink-0">Address</span>
+              <span className="text-sm font-medium text-gray-800">{address || "-"}</span>
+            </div>
+          </div>
+
           {/* Upload Foto Profil */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
