@@ -262,13 +262,13 @@ export default function SettingsAccountModal({
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Phone</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {savedPhone}
+                {user?.no_handphone || "-"}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Address</p>
               <p className="text-sm font-medium text-gray-800 break-words">
-                {savedAddress}
+                {user?.address || "-"}
               </p>
             </div>
           </div>
