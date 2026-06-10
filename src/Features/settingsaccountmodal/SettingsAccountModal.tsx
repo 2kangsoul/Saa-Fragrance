@@ -98,23 +98,20 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
       // 3. Update data ke tabel Users
       await backendlessApi.put(`data/Users/${userId}`, userToUpdate);
 
-      // 4. FIX: Perbarui data user di localStorage agar header langsung tampil foto terbaru setelah reload
-      const storageKeys = ["user", "currentUser", "userData", "backendless-user"];
-      for (const key of storageKeys) {
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            const updatedUser = {
-              ...parsed,
-              profilePic: profilePicUrl,
-              no_handphone: phone,
-              address: address,
-            };
-            localStorage.setItem(key, JSON.stringify(updatedUser));
-          } catch {
-            // Bukan JSON, lewati
+      // 4. FIX: Perbarui data user di localStorage key "auth-storage" agar header langsung tampil foto terbaru setelah reload
+      const stored = localStorage.getItem("auth-storage");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          // Struktur: { state: { isAuthenticated: true, user: { ... } }, version: 0 }
+          if (parsed?.state?.user) {
+            parsed.state.user.profilePic = profilePicUrl;
+            parsed.state.user.no_handphone = phone;
+            parsed.state.user.address = address;
+            localStorage.setItem("auth-storage", JSON.stringify(parsed));
           }
+        } catch {
+          // Bukan JSON valid, lewati
         }
       }
 
