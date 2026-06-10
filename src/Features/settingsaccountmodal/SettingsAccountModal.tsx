@@ -98,8 +98,27 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
       // 3. Update data ke tabel Users
       await backendlessApi.put(`data/Users/${userId}`, userToUpdate);
 
+      // 4. FIX: Perbarui data user di localStorage agar header langsung tampil foto terbaru setelah reload
+      const storageKeys = ["user", "currentUser", "userData", "backendless-user"];
+      for (const key of storageKeys) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            const updatedUser = {
+              ...parsed,
+              profilePic: profilePicUrl,
+              no_handphone: phone,
+              address: address,
+            };
+            localStorage.setItem(key, JSON.stringify(updatedUser));
+          } catch {
+            // Bukan JSON, lewati
+          }
+        }
+      }
+
       alert("Profile updated successfully!");
-      window.location.reload();
       onClose(); // Tutup modal setelah save
       window.location.reload(); // Refresh halaman agar data terbaru langsung muncul
     } catch (error: any) {
