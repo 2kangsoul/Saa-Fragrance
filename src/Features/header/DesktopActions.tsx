@@ -5,7 +5,7 @@ import type { UseMainLayoutReturn } from "../header/types/MainLayout.types";
 // Menambahkan fungsi pop-up register dan account ke dalam tipe props
 interface DesktopActionsProps extends UseMainLayoutReturn {
   setIsRegisterModalOpen?: (val: boolean) => void;
-  setIsAccountModalOpen?: (val: boolean) => void; // <-- Perbaikan baris 8
+  setIsAccountModalOpen?: (val: boolean) => void; 
 }
 
 export default function DesktopActions(props: DesktopActionsProps) {
@@ -19,7 +19,7 @@ export default function DesktopActions(props: DesktopActionsProps) {
     setIsPerfumeModalOpen,
     setIsBlogModalOpen,
     setIsRegisterModalOpen,
-    setIsAccountModalOpen, // <-- Perbaikan baris 20
+    setIsAccountModalOpen, 
   } = props;
 
   // State lokal untuk mengontrol dropdown akun
@@ -30,29 +30,44 @@ export default function DesktopActions(props: DesktopActionsProps) {
       {isAuthenticated ? (
         <div className="flex items-center gap-4">
           
-          {/* --- BAGIAN YANG DIUBAH: Dropdown Hai, {user?.name} --- */}
+          {/* 1. BAGIAN NAMA, FOTO PROFIL, DAN DROPDOWN ACCOUNT */}
           <div className="relative">
             <button
-              onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-              className="text-sm font-medium text-gray-800 hover:text-gray-600 flex items-center gap-1 cursor-pointer"
+              onClick={() => {
+                setIsAccountMenuOpen(!isAccountMenuOpen);
+                // Menutup menu Manage jika sedang terbuka
+                if (setIsManageMenuOpen) setIsManageMenuOpen(false); 
+              }}
+              className="flex items-center gap-2 cursor-pointer group"
             >
-              Hai, {user?.name}
+              <span className="text-sm font-medium text-gray-800 group-hover:text-gray-600">
+                Hai, {user?.name}
+              </span>
+              
+              {/* Lingkaran Foto Profil */}
+              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-300 flex items-center justify-center flex-shrink-0">
+                {user?.profilePic ? (
+                  <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  // Ikon default jika belum ada foto
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </div>
+
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
+                className="h-4 w-4 text-gray-800 group-hover:text-gray-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
+            {/* Isi Dropdown Account */}
             {isAccountMenuOpen && (
               <div className="absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50 flex flex-col">
                 <button
@@ -67,13 +82,16 @@ export default function DesktopActions(props: DesktopActionsProps) {
               </div>
             )}
           </div>
-          {/* --- AKHIR BAGIAN YANG DIUBAH --- */}
 
-          {/* LOGIKA ROLE UNTUK DESKTOP */}
+          {/* 2. BAGIAN TOMBOL MANAGE */}
           {user?.role === "owner" || user?.role === "admin" ? (
             <div className="relative">
               <button
-                onClick={() => setIsManageMenuOpen(!isManageMenuOpen)}
+                onClick={() => {
+                  if (setIsManageMenuOpen) setIsManageMenuOpen(!isManageMenuOpen);
+                  // Menutup menu Account jika sedang terbuka
+                  setIsAccountMenuOpen(false); 
+                }}
                 className="flex items-center gap-1 px-3 py-1 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md"
               >
                 Manage
@@ -84,21 +102,17 @@ export default function DesktopActions(props: DesktopActionsProps) {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
+              {/* Isi Dropdown Manage */}
               {isManageMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50 flex flex-col">
                   <button
                     onClick={() => {
-                      setIsManageMenuOpen(false);
-                      setIsPerfumeModalOpen(true);
+                      if (setIsManageMenuOpen) setIsManageMenuOpen(false);
+                      if (setIsPerfumeModalOpen) setIsPerfumeModalOpen(true);
                     }}
                     className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium"
                   >
@@ -107,8 +121,8 @@ export default function DesktopActions(props: DesktopActionsProps) {
 
                   <button
                     onClick={() => {
-                      setIsManageMenuOpen(false);
-                      setIsBlogModalOpen(true);
+                      if (setIsManageMenuOpen) setIsManageMenuOpen(false);
+                      if (setIsBlogModalOpen) setIsBlogModalOpen(true);
                     }}
                     className="text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-medium border-t border-gray-100"
                   >
@@ -118,8 +132,8 @@ export default function DesktopActions(props: DesktopActionsProps) {
                   {user?.role === "owner" && (
                     <button
                       onClick={() => {
-                        setIsManageMenuOpen(false);
-                        setIsAdminModalOpen(true);
+                        if (setIsManageMenuOpen) setIsManageMenuOpen(false);
+                        if (setIsAdminModalOpen) setIsAdminModalOpen(true);
                       }}
                       className="text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium border-t border-gray-100"
                     >
@@ -131,13 +145,17 @@ export default function DesktopActions(props: DesktopActionsProps) {
             </div>
           ) : (
             <button
-              onClick={() => setIsBlogModalOpen(true)}
+              onClick={() => {
+                if (setIsBlogModalOpen) setIsBlogModalOpen(true);
+                setIsAccountMenuOpen(false);
+              }}
               className="flex items-center gap-1 px-3 py-1 bg-gray-900 text-white font-bold hover:bg-gray-800 transition-colors rounded-md"
             >
               ✍️ Manage Blog
             </button>
           )}
 
+          {/* 3. BAGIAN TOMBOL LOGOUT */}
           <button
             onClick={logout}
             className="px-3 py-1 text-red-500 font-bold hover:bg-red-50 hover:text-red-700 transition-colors rounded-md"

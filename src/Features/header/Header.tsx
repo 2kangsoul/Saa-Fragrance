@@ -1,21 +1,25 @@
+import { useState } from "react"; // <-- TAMBAHAN: Import useState
 import { Link } from "react-router-dom";
 import type { UseMainLayoutReturn } from "../header/types/MainLayout.types";
 
 import DesktopNav from "./DesktopNav";
 import DesktopActions from "./DesktopActions";
 import MobileMenu from "../../Features/header/component/MobileMenu";
-import SettingsAccountModal from "../../Features/settingsaccountmodal/SettingsAccountModal"; // <-- TAMBAHAN IMPORT MODAL BARU
+import SettingsAccountModal from "../../Features/settingsaccountmodal/SettingsAccountModal"; 
 
 // --- TAMBAHAN: Menambahkan tipe props baru agar TypeScript tidak merah ---
 interface HeaderProps extends UseMainLayoutReturn {
   setIsRegisterModalOpen?: (val: boolean) => void;
-  setIsAccountModalOpen?: (val: boolean) => void; // <-- TAMBAHAN
-  isAccountModalOpen?: boolean; // <-- TAMBAHAN
+  setIsAccountModalOpen?: (val: boolean) => void; 
+  isAccountModalOpen?: boolean; 
 }
 
 export default function Header(props: HeaderProps) {
-  // Destructure state modal dan data user dari props
-  const { isScrolled, isAccountModalOpen, setIsAccountModalOpen, user } = props;
+  // Hanya ambil isScrolled dan user dari props
+  const { isScrolled, user } = props;
+
+  // --- TAMBAHAN: Buat state lokal di sini agar modal bisa terbuka/tertutup ---
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   return (
     <>
@@ -38,7 +42,11 @@ export default function Header(props: HeaderProps) {
         <DesktopNav />
 
         {/* Komponen Aksi Desktop (Kanan) */}
-        <DesktopActions {...props} />
+        {/* --- TAMBAHAN: Kirimkan fungsi setIsAccountModalOpen ke DesktopActions --- */}
+        <DesktopActions 
+          {...props} 
+          setIsAccountModalOpen={setIsAccountModalOpen} 
+        />
 
         {/* Komponen Menu Mobile (Tombol dan Dropdown) */}
         <MobileMenu {...props} />
@@ -46,8 +54,8 @@ export default function Header(props: HeaderProps) {
 
       {/* --- TAMBAHAN: Menampilkan Pop-up Account Settings --- */}
       <SettingsAccountModal
-        isOpen={!!isAccountModalOpen}
-        onClose={() => setIsAccountModalOpen && setIsAccountModalOpen(false)}
+        isOpen={isAccountModalOpen} // <-- Menggunakan state lokal
+        onClose={() => setIsAccountModalOpen(false)} // <-- Menggunakan state lokal
         user={user}
       />
     </>
