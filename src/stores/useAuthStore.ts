@@ -5,6 +5,8 @@ import backendlessApi from "../config/api";
 interface UserData {
   name?: string;
   email?: string;
+  address?: string;
+  no_handphone?: string;
   objectId: string;
   userToken: string;
   role?: string;
@@ -50,6 +52,8 @@ export const useAuthStore = create<AuthState>()(
               ...currentUser,
               name: response.data.name || currentUser.name,
               email: response.data.email,
+              address: response.data.address,
+              no_handphone: response.data.no_handphone,
               objectId: response.data.objectId,
               role: response.data.role || "user",
               profilePic: response.data.profilePic || currentUser.profilePic, // <-- TAMBAHAN: restore profilePic dari DB
@@ -81,6 +85,8 @@ export const useAuthStore = create<AuthState>()(
               role: state.user.role,
               name: state.user.name,
               email: state.user.email, // <-- TAMBAHAN: Menyimpan email ke storage
+              no_handphone: state.user.no_handphone,
+              address: state.user.address,
               profilePic: state.user.profilePic, // <-- TAMBAHAN: Menyimpan profilePic ke storage
             }
           : null,
