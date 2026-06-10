@@ -99,6 +99,7 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
       await backendlessApi.put(`data/Users/${userId}`, userToUpdate);
 
       alert("Profile updated successfully!");
+      window.location.reload();
       onClose(); // Tutup modal setelah save
       window.location.reload(); // Refresh halaman agar data terbaru langsung muncul
     } catch (error: any) {
