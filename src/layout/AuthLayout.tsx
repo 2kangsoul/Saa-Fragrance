@@ -8,13 +8,12 @@ export default function AuthLayout() {
   const { isAuthenticated, user, fetchCurrentUser } = useAuthStore();
   const location = useLocation();
 
-  // Sensor Auto-Restore saat Refresh — FIX: selalu fetch dari DB saat login aktif
-  // agar no_handphone, address, profilePic selalu up-to-date setelah login ulang
+  // Sensor Auto-Restore saat Refresh
   useEffect(() => {
-    if (isAuthenticated && user?.userToken) {
+    if (isAuthenticated && user?.userToken && !user?.name) {
       fetchCurrentUser();
     }
-  }, [isAuthenticated, user?.userToken, fetchCurrentUser]);
+  }, [isAuthenticated, user, fetchCurrentUser]);
 
   // Sensor Anti-Hapus Local Storage
   useEffect(() => {

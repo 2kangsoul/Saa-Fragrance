@@ -7,14 +7,21 @@ interface SettingsAccountModalProps {
   user: any; // Sesuaikan dengan tipe data user kamu
 }
 
-export default function SettingsAccountModal({ isOpen, onClose, user }: SettingsAccountModalProps) {
+export default function SettingsAccountModal({
+  isOpen,
+  onClose,
+  user,
+}: SettingsAccountModalProps) {
   // Mengambil data default dari user agar form tidak kosong jika data sudah ada
   const [phone, setPhone] = useState(user?.no_handphone || "");
   const [address, setAddress] = useState(user?.address || "");
+  // Nilai yang tersimpan di DB — dipakai di biodata, tidak berubah saat user mengetik
+  const savedPhone = user?.no_handphone || "-";
+  const savedAddress = user?.address || "-";
   const [password, setPassword] = useState("");
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // State untuk menyimpan error per field
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -53,7 +60,9 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
       }
 
       if (!userId) {
-        alert("Error: Gagal memverifikasi ID pengguna. Silakan logout dan login ulang.");
+        alert(
+          "Error: Gagal memverifikasi ID pengguna. Silakan logout dan login ulang.",
+        );
         setIsLoading(false);
         return;
       }
@@ -83,8 +92,8 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
 
       // 2. Siapkan data yang akan di-update ke tabel Users
       const userToUpdate: any = {
-        email: user.email, 
-        name: user.name, 
+        email: user.email,
+        name: user.name,
         no_handphone: phone,
         address: address,
         profilePic: profilePicUrl,
@@ -192,9 +201,11 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 ${errors.phone ? "border-red-500" : "border-gray-300"}`}
               />
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+              )}
             </div>
 
             {/* Input Address */}
@@ -208,9 +219,11 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none ${errors.address ? "border-red-500" : "border-gray-300"}`}
               ></textarea>
-              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+              {errors.address && (
+                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+              )}
             </div>
 
             {/* Input Password */}
@@ -231,22 +244,32 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
 
           {/* RIGHT column: Biodata Read-Only */}
           <div className="w-52 shrink-0 bg-gray-50 border-l border-gray-200 px-5 py-6 space-y-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Biodata</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              Biodata
+            </p>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Name</p>
-              <p className="text-sm font-medium text-gray-800 break-words">{user?.name || "-"}</p>
+              <p className="text-sm font-medium text-gray-800 break-words">
+                {user?.name || "-"}
+              </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Email</p>
-              <p className="text-sm font-medium text-gray-800 break-words">{user?.email || "-"}</p>
+              <p className="text-sm font-medium text-gray-800 break-words">
+                {user?.email || "-"}
+              </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Phone</p>
-              <p className="text-sm font-medium text-gray-800 break-words">{phone || "-"}</p>
+              <p className="text-sm font-medium text-gray-800 break-words">
+                {savedPhone}
+              </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Address</p>
-              <p className="text-sm font-medium text-gray-800 break-words">{address || "-"}</p>
+              <p className="text-sm font-medium text-gray-800 break-words">
+                {savedAddress}
+              </p>
             </div>
           </div>
         </div>
