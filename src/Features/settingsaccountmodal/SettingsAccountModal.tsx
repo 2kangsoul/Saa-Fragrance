@@ -129,7 +129,7 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+      <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden">
         {/* Header Modal */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">Account Settings</h2>
@@ -142,109 +142,112 @@ export default function SettingsAccountModal({ isOpen, onClose, user }: Settings
           </button>
         </div>
 
-        {/* Body Modal */}
-        <div className="p-6 space-y-4">
-          {/* Biodata Read-Only */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 space-y-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Biodata</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-16 shrink-0">Name</span>
-              <span className="text-sm font-medium text-gray-800">{user?.name || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-16 shrink-0">Email</span>
-              <span className="text-sm font-medium text-gray-800">{user?.email || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-16 shrink-0">Phone</span>
-              <span className="text-sm font-medium text-gray-800">{phone || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-16 shrink-0">Address</span>
-              <span className="text-sm font-medium text-gray-800">{address || "-"}</span>
-            </div>
-          </div>
-
-          {/* Upload Foto Profil */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Profile Picture
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                {profilePic ? (
-                  <img
-                    src={URL.createObjectURL(profilePic)}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : user?.profilePic ? (
-                  <img
-                    src={user.profilePic}
-                    alt="Current Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                    No Pic
-                  </div>
-                )}
+        {/* Body Modal — two columns */}
+        <div className="flex">
+          {/* LEFT column: Form */}
+          <div className="flex-1 p-6 space-y-4">
+            {/* Upload Foto Profil */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Profile Picture
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
+                  {profilePic ? (
+                    <img
+                      src={URL.createObjectURL(profilePic)}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : user?.profilePic ? (
+                    <img
+                      src={user.profilePic}
+                      alt="Current Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      No Pic
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={isLoading}
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-800 cursor-pointer disabled:opacity-50"
+                />
               </div>
+            </div>
+
+            {/* Input Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
+                type="text"
+                placeholder="e.g. 08123456789"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 disabled={isLoading}
-                className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-800 cursor-pointer disabled:opacity-50"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+            </div>
+
+            {/* Input Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                placeholder="Enter your full address"
+                rows={3}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                disabled={isLoading}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+              ></textarea>
+              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+            </div>
+
+            {/* Input Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                placeholder="Leave blank to keep current"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
               />
             </div>
           </div>
 
-          {/* Input Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. 08123456789"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
-            />
-            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-          </div>
-
-          {/* Input Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              placeholder="Enter your full address"
-              rows={3}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-            ></textarea>
-            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-          </div>
-
-          {/* Input Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <input
-              type="password"
-              placeholder="Leave blank to keep current"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-100"
-            />
+          {/* RIGHT column: Biodata Read-Only */}
+          <div className="w-52 shrink-0 bg-gray-50 border-l border-gray-200 px-5 py-6 space-y-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Biodata</p>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Name</p>
+              <p className="text-sm font-medium text-gray-800 break-words">{user?.name || "-"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Email</p>
+              <p className="text-sm font-medium text-gray-800 break-words">{user?.email || "-"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Phone</p>
+              <p className="text-sm font-medium text-gray-800 break-words">{phone || "-"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Address</p>
+              <p className="text-sm font-medium text-gray-800 break-words">{address || "-"}</p>
+            </div>
           </div>
         </div>
 
