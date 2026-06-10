@@ -49,6 +49,7 @@ export default function LoginPage() {
         objectId: res?.data?.objectId,
         userToken: res?.data["user-token"],
         role: userRole,
+        profilePic: res?.data?.profilePic || "", // <-- TAMBAHAN: Simpan profilePic saat login
       });
 
       // Pindah ke halaman utama dan MELAKUKAN FULL REFRESH (Force Reload)
